@@ -405,7 +405,6 @@ import jsfeat from './jsfeat_namespace'
                     else if (hh >= median)
                         high = (hh - 1);
                 }
-                return 0;
             }
         };
 

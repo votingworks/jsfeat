@@ -649,7 +649,7 @@ export const hough_transform = function( img, rho_res, theta_res, threshold ) {
         for( var j = 0; j < width; j++ ) {
             if( image[i * step + j] != 0 ) {
                 //console.log(r, (n+1) * (numrho+2) + r+1, tabCos[n], tabSin[n]);
-                for(var n = 0; n < numangle; n++ ) {
+                for(let n = 0; n < numangle; n++ ) {
                     var r = Math.round( j * tabCos[n] + i * tabSin[n] );
                     r += (numrho - 1) / 2;
                     accum[(n+1) * (numrho+2) + r+1] += 1;
@@ -661,8 +661,8 @@ export const hough_transform = function( img, rho_res, theta_res, threshold ) {
     // stage 2. find local maximums
     //TODO: Consider making a vector class that uses typed arrays
     var _sort_buf = new Array();
-    for(var r = 0; r < numrho; r++ ) {
-        for(var n = 0; n < numangle; n++ ) {
+    for(let r = 0; r < numrho; r++ ) {
+        for(let n = 0; n < numangle; n++ ) {
             var base = (n+1) * (numrho+2) + r+1;
             if( accum[base] > threshold &&
                 accum[base] > accum[base - 1] && accum[base] >= accum[base + 1] &&
@@ -681,10 +681,10 @@ export const hough_transform = function( img, rho_res, theta_res, threshold ) {
     var linesMax = Math.min(numangle*numrho, _sort_buf.length);
     var scale = 1.0 / (numrho+2);
     var lines = new Array();
-    for( var i = 0; i < linesMax; i++ ) {
+    for( let i = 0; i < linesMax; i++ ) {
         var idx = _sort_buf[i];
-        var n = Math.floor(idx*scale) - 1;
-        var r = idx - (n+1)*(numrho+2) - 1;
+        let n = Math.floor(idx*scale) - 1;
+        let r = idx - (n+1)*(numrho+2) - 1;
         var lrho = (r - (numrho - 1)*0.5) * rho_res;
         var langle = n * theta_res;
         lines.push([lrho, langle]);
@@ -997,7 +997,7 @@ export const equalize_histogram = function(src, dst) {
 }
 
 export const canny = function(src, dst, low_thresh, high_thresh) {
-    var w=src.cols,h=src.rows,src_d=src.data;
+    var w=src.cols,h=src.rows;
 
     dst.resize(w, h, src.channel);
     

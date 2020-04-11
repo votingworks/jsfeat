@@ -27,7 +27,7 @@ export const detect_single_scale = function(int_sum, int_sqsum, int_tilted, int_
     var w1=(width+1)|0,edge_dens,mean,variance,std;
     var inv_area = 1.0 / (win_w * win_h);
     var stages,stage,trees,tree,sn,tn,fn,found=true,stage_thresh,stage_sum,tree_sum,feature,features;
-    var fi_a,fi_b,fi_c,fi_d,fw,fh;
+    var fi_a,fi_b,fi_c,fw,fh;
 
     var ii_a=0,ii_b=win_w,ii_c=win_h*w1,ii_d=ii_c+win_w;
     var edges_thresh = ((win_w*win_h) * 0xff * edges_density)|0;
@@ -220,7 +220,7 @@ export const group_rectangles = function(rects, min_neighbors) {
 
     // count number of neighbors
     for(i = 0; i < n; ++i) {
-        var r1 = rects[i];
+        let r1 = rects[i];
         var idx = idx_seq[i];
 
         if (comps[idx].neighbors == 0)
@@ -252,7 +252,7 @@ export const group_rectangles = function(rects, min_neighbors) {
     n = seq2.length;
     // filter out small face rectangles inside large face rectangles
     for(i = 0; i < n; ++i) {
-        var r1 = seq2[i];
+        let r1 = seq2[i];
         var flag = true;
         for(j = 0; j < n; ++j) {
             var r2 = seq2[j];

@@ -58,25 +58,6 @@ import jsfeat from './jsfeat_namespace'
 		    T1[8] = 1.0;
 		}
 
-		var have_collinear_points = function(points, count) {
-		    var j=0,k=0,i=(count-1)|0;
-		    var dx1=0.0,dy1=0.0,dx2=0.0,dy2=0.0;
-
-		    // check that the i-th selected point does not belong
-		    // to a line connecting some previously selected points
-		    for(; j < i; ++j) {
-		        dx1 = points[j].x - points[i].x;
-		        dy1 = points[j].y - points[i].y;
-		        for(k = 0; k < j; ++k) {
-		            dx2 = points[k].x - points[i].x;
-		            dy2 = points[k].y - points[i].y;
-		            if( Math.abs(dx2*dy1 - dy2*dx1) <= jsfeat.EPSILON*(Math.abs(dx1) + Math.abs(dy1) + Math.abs(dx2) + Math.abs(dy2)))
-		                return true;
-		        }
-		    }
-		    return false;
-		}
-
 		var T0 = new jsfeat.matrix_t(3, 3, jsfeat.F32_t|jsfeat.C1_t);
     	var T1 = new jsfeat.matrix_t(3, 3, jsfeat.F32_t|jsfeat.C1_t);
     	var AtA = new jsfeat.matrix_t(6, 6, jsfeat.F32_t|jsfeat.C1_t);
@@ -155,7 +136,7 @@ import jsfeat from './jsfeat_namespace'
 			    }
 	        }
 
-	        affine2d.prototype.check_subset = function(from, to, count) {
+	        affine2d.prototype.check_subset = function() {
 	            return true; // all good
 	        }
 
@@ -410,7 +391,7 @@ import jsfeat from './jsfeat_namespace'
             this.thresh = thresh;
             this.eps = eps;
             this.prob = prob;
-        };
+        }
         ransac_params_t.prototype.update_iters = function(_eps, max_iters) {
 	        var num = Math.log(1 - this.prob);
 	        var denom = Math.log(1 - Math.pow(1 - _eps, this.size));

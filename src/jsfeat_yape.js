@@ -179,42 +179,42 @@ import jsfeat from './jsfeat_namespace'
               if ((A > Ip)) {
                 B1 = B2; b++; B2 = I[x+dirs[b]];
                 if ((B2 < Im)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 0; break; };
+                  { score -= A + B1; state = 0; break; }
               }
               if ((A < Im)) {
                 if ((B1 > Ip)) { Scores[x] = 0; return; }
                   if ((B2 > Ip)) { Scores[x] = 0; return; }
                     B1 = B2; b++; B2 = I[x+dirs[b]];
                 if ((B2 > Ip)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 8; break; };
+                  { score -= A + B1; state = 8; break; }
               } 
               // A ~ I0
               if ((B1 <= Ip)) { Scores[x] = 0; return; }
                 if ((B2 <= Ip)) { Scores[x] = 0; return; }
                   B1 = B2; b++; B2 = I[x+dirs[b]];
-              if ((B2 > Ip)) { score -= A + B1; state = 3; break; };
-              if ((B2 < Im)) { score -= A + B1; state = 6; break; };
+              if ((B2 > Ip)) { score -= A + B1; state = 3; break; }
+              if ((B2 < Im)) { score -= A + B1; state = 6; break; }
               { Scores[x] = 0; return; }
 
             case 1:
               if ((A < Im)) {
                 B1 = B2; b++; B2 = I[x+dirs[b]];
                 if ((B2 > Ip)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 1; break; };
+                  { score -= A + B1; state = 1; break; }
               }
               if ((A > Ip)) {
                 if ((B1 < Im)) { Scores[x] = 0; return; }
                   if ((B2 < Im)) { Scores[x] = 0; return; }
                     B1 = B2; b++; B2 = I[x+dirs[b]];
                 if ((B2 < Im)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 9; break; };
+                  { score -= A + B1; state = 9; break; }
               }
               // A ~ I0
               if ((B1 >= Im)) { Scores[x] = 0; return; }
                 if ((B2 >= Im)) { Scores[x] = 0; return; }
                   B1 = B2; b++; B2 = I[x+dirs[b]];
-              if ((B2 < Im)) { score -= A + B1; state = 2; break; };
-              if ((B2 > Ip)) { score -= A + B1; state = 7; break; };
+              if ((B2 < Im)) { score -= A + B1; state = 2; break; }
+              if ((B2 > Ip)) { score -= A + B1; state = 7; break; }
               { Scores[x] = 0; return; }
 
             case 2:
@@ -223,11 +223,11 @@ import jsfeat from './jsfeat_namespace'
               if ((A < Im))
               {
                 if ((B2 > Ip)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 4; break; };
+                  { score -= A + B1; state = 4; break; }
               } 
               // A ~ I0
-              if ((B2 > Ip)) { score -= A + B1; state = 7; break; };
-              if ((B2 < Im)) { score -= A + B1; state = 2; break; };
+              if ((B2 > Ip)) { score -= A + B1; state = 7; break; }
+              if ((B2 < Im)) { score -= A + B1; state = 2; break; }
               { Scores[x] = 0; return; } // A ~ I0, B2 ~ I0
 
             case 3:
@@ -235,11 +235,11 @@ import jsfeat from './jsfeat_namespace'
                 B1 = B2; b++; B2 = I[x+dirs[b]];
               if ((A > Ip)) {
                 if ((B2 < Im)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 5; break; };
+                  { score -= A + B1; state = 5; break; }
               }
               // A ~ I0
-              if ((B2 > Ip)) { score -= A + B1; state = 3; break; };
-              if ((B2 < Im)) { score -= A + B1; state = 6; break; };
+              if ((B2 > Ip)) { score -= A + B1; state = 3; break; }
+              if ((B2 < Im)) { score -= A + B1; state = 6; break; }
               { Scores[x] = 0; return; }
 
             case 4:
@@ -247,12 +247,12 @@ import jsfeat from './jsfeat_namespace'
                 if ((A < Im)) {
                   B1 = B2; b++; B2 = I[x+dirs[b]];
                   if ((B2 > Ip)) { Scores[x] = 0; return; }
-                    { score -= A + B1; state = 1; break; };
+                    { score -= A + B1; state = 1; break; }
                 }
                 if ((B2 >= Im)) { Scores[x] = 0; return; }
                   B1 = B2; b++; B2 = I[x+dirs[b]];
-                if ((B2 < Im)) { score -= A + B1; state = 2; break; };
-                if ((B2 > Ip)) { score -= A + B1; state = 7; break; };
+                if ((B2 < Im)) { score -= A + B1; state = 2; break; }
+                if ((B2 > Ip)) { score -= A + B1; state = 7; break; }
                 { Scores[x] = 0; return; }
 
             case 5:
@@ -260,13 +260,13 @@ import jsfeat from './jsfeat_namespace'
                 if ((A > Ip)) {
                   B1 = B2; b++; B2 = I[x+dirs[b]];
                   if ((B2 < Im)) { Scores[x] = 0; return; }
-                    { score -= A + B1; state = 0; break; };
+                    { score -= A + B1; state = 0; break; }
                 }
                 // A ~ I0
                 if ((B2 <= Ip)) { Scores[x] = 0; return; }
                   B1 = B2; b++; B2 = I[x+dirs[b]];
-                if ((B2 > Ip)) { score -= A + B1; state = 3; break; };
-                if ((B2 < Im)) { score -= A + B1; state = 6; break; };
+                if ((B2 > Ip)) { score -= A + B1; state = 3; break; }
+                if ((B2 < Im)) { score -= A + B1; state = 6; break; }
                 { Scores[x] = 0; return; }
 
             case 7:
@@ -274,8 +274,8 @@ import jsfeat from './jsfeat_namespace'
                 if ((A < Im)) { Scores[x] = 0; return; }
                   B1 = B2; b++; B2 = I[x+dirs[b]];
               // A ~ I0
-              if ((B2 > Ip)) { score -= A + B1; state = 3; break; };
-              if ((B2 < Im)) { score -= A + B1; state = 6; break; };
+              if ((B2 > Ip)) { score -= A + B1; state = 3; break; }
+              if ((B2 < Im)) { score -= A + B1; state = 6; break; }
               { Scores[x] = 0; return; } // A ~ I0, B2 ~ I0
 
             case 6:
@@ -283,8 +283,8 @@ import jsfeat from './jsfeat_namespace'
                 if ((A < Im)) { Scores[x] = 0; return; }
                   B1 = B2; b++; B2 = I[x+dirs[b]];
               // A ~ I0
-              if ((B2 < Im)) { score -= A + B1; state = 2; break; };
-              if ((B2 > Ip)) { score -= A + B1; state = 7; break; };
+              if ((B2 < Im)) { score -= A + B1; state = 2; break; }
+              if ((B2 > Ip)) { score -= A + B1; state = 7; break; }
               { Scores[x] = 0; return; } // A ~ I0, B2 ~ I0
 
             case 8:
@@ -292,12 +292,12 @@ import jsfeat from './jsfeat_namespace'
                 if ((B2 < Im)) { Scores[x] = 0; return; }
                   B1 = B2; b++; B2 = I[x+dirs[b]];
                 if ((B2 < Im)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 9; break; };
+                  { score -= A + B1; state = 9; break; }
               }
               if ((A < Im)) {
                 B1 = B2; b++; B2 = I[x+dirs[b]];
                 if ((B2 > Ip)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 1; break; };
+                  { score -= A + B1; state = 1; break; }
               }
               { Scores[x] = 0; return; }
 
@@ -306,12 +306,12 @@ import jsfeat from './jsfeat_namespace'
                 if ((B2 > Ip)) { Scores[x] = 0; return; }
                   B1 = B2; b++; B2 = I[x+dirs[b]];
                 if ((B2 > Ip)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 8; break; };
+                  { score -= A + B1; state = 8; break; }
               }
               if ((A > Ip)) {
                 B1 = B2; b++; B2 = I[x+dirs[b]];
                 if ((B2 < Im)) { Scores[x] = 0; return; }
-                  { score -= A + B1; state = 0; break; };
+                  { score -= A + B1; state = 0; break; }
               }
               { Scores[x] = 0; return; }
 

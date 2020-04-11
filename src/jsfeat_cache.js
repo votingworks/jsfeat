@@ -39,7 +39,6 @@ import jsfeat from './jsfeat_namespace'
         })();
 
         var _pool_head, _pool_tail;
-        var _pool_size = 0;
 
         return {
 
@@ -48,8 +47,6 @@ import jsfeat from './jsfeat_namespace'
                 for (var i = 0; i < capacity; ++i) {
                     var node = new _pool_node_t(data_size);
                     _pool_tail = _pool_tail.next = node;
-
-                    _pool_size++;
                 }
             },
 
@@ -57,7 +54,6 @@ import jsfeat from './jsfeat_namespace'
                 // assume we have enough free nodes
                 var node = _pool_head;
                 _pool_head = _pool_head.next;
-                _pool_size--;
 
                 if(size_in_bytes > node.size) {
                     node.resize(size_in_bytes);
@@ -68,7 +64,6 @@ import jsfeat from './jsfeat_namespace'
 
             put_buffer: function(node) {
                 _pool_tail = _pool_tail.next = node;
-                _pool_size++;
             }
         };
     })();

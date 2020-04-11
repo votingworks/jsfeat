@@ -128,7 +128,6 @@ import * as imgproc from './jsfeat_imgproc'
             },
 
             detect: function(pyramid, cascade) {
-                var interval = this.interval;
                 var scale = this.scale;
                 var next = this.next;
                 var scale_upto = this.scale_to;
@@ -333,7 +332,7 @@ import * as imgproc from './jsfeat_imgproc'
 
                 // count number of neighbors
                 for(i = 0; i < n; ++i) {
-                    var r1 = rects[i];
+                    let r1 = rects[i];
                     var idx = idx_seq[i];
 
                     if (comps[idx].neighbors == 0)
@@ -365,7 +364,7 @@ import * as imgproc from './jsfeat_imgproc'
                 n = seq2.length;
                 // filter out small face rectangles inside large face rectangles
                 for(i = 0; i < n; ++i) {
-                    var r1 = seq2[i];
+                    let r1 = seq2[i];
                     var flag = true;
                     for(j = 0; j < n; ++j) {
                         var r2 = seq2[j];
