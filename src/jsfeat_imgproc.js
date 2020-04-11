@@ -3,6 +3,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as cache from './jsfeat_cache'
 import * as math from './jsfeat_math'
 
 var _resample_u8 = function(src, dst, nw, nh) {
@@ -14,9 +15,9 @@ var _resample_u8 = function(src, dst, nw, nh) {
     var dx=0,dy=0,sx=0,sy=0,sx1=0,sx2=0,i=0,k=0,fsx1=0.0,fsx2=0.0;
     var a=0,b=0,dxn=0,alpha=0,beta=0,beta1=0;
 
-    var buf_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-    var sum_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-    var xofs_node = jsfeat.cache.get_buffer((w*2*3)<<2);
+    var buf_node = cache.get_buffer((nw*ch)<<2);
+    var sum_node = cache.get_buffer((nw*ch)<<2);
+    var xofs_node = cache.get_buffer((w*2*3)<<2);
 
     var buf = buf_node.i32;
     var sum = sum_node.i32;
@@ -87,9 +88,9 @@ var _resample_u8 = function(src, dst, nw, nh) {
         }
     }
 
-    jsfeat.cache.put_buffer(sum_node);
-    jsfeat.cache.put_buffer(buf_node);
-    jsfeat.cache.put_buffer(xofs_node);
+    cache.put_buffer(sum_node);
+    cache.put_buffer(buf_node);
+    cache.put_buffer(xofs_node);
 }
 
 var _resample = function(src, dst, nw, nh) {
@@ -101,9 +102,9 @@ var _resample = function(src, dst, nw, nh) {
     var dx=0,dy=0,sx=0,sy=0,sx1=0,sx2=0,i=0,k=0,fsx1=0.0,fsx2=0.0;
     var a=0,b=0,dxn=0,alpha=0.0,beta=0.0,beta1=0.0;
 
-    var buf_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-    var sum_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-    var xofs_node = jsfeat.cache.get_buffer((w*2*3)<<2);
+    var buf_node = cache.get_buffer((nw*ch)<<2);
+    var sum_node = cache.get_buffer((nw*ch)<<2);
+    var xofs_node = cache.get_buffer((w*2*3)<<2);
 
     var buf = buf_node.f32;
     var sum = sum_node.f32;
@@ -173,9 +174,9 @@ var _resample = function(src, dst, nw, nh) {
             }
         }
     }
-    jsfeat.cache.put_buffer(sum_node);
-    jsfeat.cache.put_buffer(buf_node);
-    jsfeat.cache.put_buffer(xofs_node);
+    cache.put_buffer(sum_node);
+    cache.put_buffer(buf_node);
+    cache.put_buffer(xofs_node);
 }
 
 var _convol_u8 = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel) {
@@ -421,7 +422,7 @@ export const box_blur_gray = function(src, dst, radius, options) {
     var radiusPlusOne = (radius + 1)|0, radiusPlus2 = (radiusPlusOne+1)|0;
     var scale = options&jsfeat.BOX_BLUR_NOSCALE ? 1 : (1.0 / (windowSize*windowSize));
 
-    var tmp_buff = jsfeat.cache.get_buffer((w*h)<<2);
+    var tmp_buff = cache.get_buffer((w*h)<<2);
 
     var sum=0, dstIndex=0, srcIndex = 0, nextPixelIndex=0, previousPixelIndex=0;
     var data_i32 = tmp_buff.i32; // to prevent overflow
@@ -577,7 +578,7 @@ export const box_blur_gray = function(src, dst, radius, options) {
         }
     }
 
-    jsfeat.cache.put_buffer(tmp_buff);
+    cache.put_buffer(tmp_buff);
 }
 
 export const gaussian_blur = function(src, dst, kernel_size, sigma) {
@@ -593,8 +594,8 @@ export const gaussian_blur = function(src, dst, kernel_size, sigma) {
     var src_d = src.data, dst_d = dst.data;
     var buf,filter,buf_sz=(kernel_size + Math.max(h, w))|0;
 
-    var buf_node = jsfeat.cache.get_buffer(buf_sz<<2);
-    var filt_node = jsfeat.cache.get_buffer(kernel_size<<2);
+    var buf_node = cache.get_buffer(buf_sz<<2);
+    var filt_node = cache.get_buffer(kernel_size<<2);
 
     if(is_u8) {
         buf = buf_node.i32;
@@ -615,8 +616,8 @@ export const gaussian_blur = function(src, dst, kernel_size, sigma) {
         _convol(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel);
     }
 
-    jsfeat.cache.put_buffer(buf_node);
-    jsfeat.cache.put_buffer(filt_node);
+    cache.put_buffer(buf_node);
+    cache.put_buffer(filt_node);
 }
 
 export const hough_transform = function( img, rho_res, theta_res, threshold ) {
@@ -737,8 +738,8 @@ export const scharr_derivatives = function(src, dst) {
 
     var img = src.data, gxgy=dst.data;
 
-    var buf0_node = jsfeat.cache.get_buffer((w+2)<<2);
-    var buf1_node = jsfeat.cache.get_buffer((w+2)<<2);
+    var buf0_node = cache.get_buffer((w+2)<<2);
+    var buf1_node = cache.get_buffer((w+2)<<2);
 
     if(src.type&jsfeat.U8_t || src.type&jsfeat.S32_t) {
         trow0 = buf0_node.i32;
@@ -790,8 +791,8 @@ export const scharr_derivatives = function(src, dst) {
             gxgy[drow++] = ( ((trow1[x+2] + trow1[x])*3 + trow1[x+1]*10) );
         }
     }
-    jsfeat.cache.put_buffer(buf0_node);
-    jsfeat.cache.put_buffer(buf1_node);
+    cache.put_buffer(buf0_node);
+    cache.put_buffer(buf1_node);
 }
 
 // compute gradient using Sobel kernel [1 2 1] * [-1 0 1]^T
@@ -806,8 +807,8 @@ export const sobel_derivatives = function(src, dst) {
 
     var img = src.data, gxgy=dst.data;
 
-    var buf0_node = jsfeat.cache.get_buffer((w+2)<<2);
-    var buf1_node = jsfeat.cache.get_buffer((w+2)<<2);
+    var buf0_node = cache.get_buffer((w+2)<<2);
+    var buf1_node = cache.get_buffer((w+2)<<2);
 
     if(src.type&jsfeat.U8_t || src.type&jsfeat.S32_t) {
         trow0 = buf0_node.i32;
@@ -859,8 +860,8 @@ export const sobel_derivatives = function(src, dst) {
             gxgy[drow++] = ( trow1[x+2] + trow1[x] + trow1[x+1]*2 );
         }
     }
-    jsfeat.cache.put_buffer(buf0_node);
-    jsfeat.cache.put_buffer(buf1_node);
+    cache.put_buffer(buf0_node);
+    cache.put_buffer(buf1_node);
 }
 
 // please note: 
@@ -978,7 +979,7 @@ export const equalize_histogram = function(src, dst) {
     var dst_d=dst.data,size=w*h;
     var i=0,prev=0,hist0,norm;
 
-    var hist0_node = jsfeat.cache.get_buffer(256<<2);
+    var hist0_node = cache.get_buffer(256<<2);
     hist0 = hist0_node.i32;
     for(; i < 256; ++i) hist0[i] = 0;
     for (i = 0; i < size; ++i) {
@@ -994,7 +995,7 @@ export const equalize_histogram = function(src, dst) {
     for (i = 0; i < size; ++i) {
         dst_d[i] = (hist0[src_d[i]] * norm + 0.5)|0;
     }
-    jsfeat.cache.put_buffer(hist0_node);
+    cache.put_buffer(hist0_node);
 }
 
 export const canny = function(src, dst, low_thresh, high_thresh) {
@@ -1007,10 +1008,10 @@ export const canny = function(src, dst, low_thresh, high_thresh) {
     var tg22x=0,tg67x=0;
 
     // cache buffers
-    var dxdy_node = jsfeat.cache.get_buffer((h * w2)<<2);
-    var buf_node = jsfeat.cache.get_buffer((3 * (w + 2))<<2);
-    var map_node = jsfeat.cache.get_buffer(((h+2) * (w + 2))<<2);
-    var stack_node = jsfeat.cache.get_buffer((h * w)<<2);
+    var dxdy_node = cache.get_buffer((h * w2)<<2);
+    var buf_node = cache.get_buffer((3 * (w + 2))<<2);
+    var map_node = cache.get_buffer(((h+2) * (w + 2))<<2);
+    var stack_node = cache.get_buffer((h * w)<<2);
     
 
     var buf = buf_node.i32;
@@ -1156,10 +1157,10 @@ export const canny = function(src, dst, low_thresh, high_thresh) {
     }
 
     // free buffers
-    jsfeat.cache.put_buffer(dxdy_node);
-    jsfeat.cache.put_buffer(buf_node);
-    jsfeat.cache.put_buffer(map_node);
-    jsfeat.cache.put_buffer(stack_node);
+    cache.put_buffer(dxdy_node);
+    cache.put_buffer(buf_node);
+    cache.put_buffer(map_node);
+    cache.put_buffer(stack_node);
 }
 
 // transform is 3x3 matrix_t

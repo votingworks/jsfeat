@@ -4,6 +4,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as cache from './jsfeat_cache'
 import * as matmath from './jsfeat_mat_math'
 
 var swap = function(A, i0, i1, t) {
@@ -32,8 +33,8 @@ var JacobiImpl = function(A, astep, W, V, vstep, n) {
     var iters=0,max_iter=n*n*30;
     var mv=0.0,val=0.0,p=0.0,y=0.0,t=0.0,s=0.0,c=0.0,a0=0.0,b0=0.0;
 
-    var indR_buff = jsfeat.cache.get_buffer(n<<2);
-    var indC_buff = jsfeat.cache.get_buffer(n<<2);
+    var indR_buff = cache.get_buffer(n<<2);
+    var indC_buff = cache.get_buffer(n<<2);
     var indR = indR_buff.i32;
     var indC = indC_buff.i32;
 
@@ -175,8 +176,8 @@ var JacobiImpl = function(A, astep, W, V, vstep, n) {
     }
 
 
-    jsfeat.cache.put_buffer(indR_buff);
-    jsfeat.cache.put_buffer(indC_buff);
+    cache.put_buffer(indR_buff);
+    cache.put_buffer(indC_buff);
 }
 
 var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
@@ -189,7 +190,7 @@ var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
     var seed = 0x1234;
     var val=0.0,val0=0.0,asum=0.0;
 
-    var W_buff = jsfeat.cache.get_buffer(n<<3);
+    var W_buff = cache.get_buffer(n<<3);
     var W = W_buff.f64;
     
     for(; i < n; i++) {
@@ -317,7 +318,7 @@ var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
     }
     
     if(!Vt) {
-        jsfeat.cache.put_buffer(W_buff);
+        cache.put_buffer(W_buff);
         return;
     }
 
@@ -367,7 +368,7 @@ var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
         }
     }
 
-    jsfeat.cache.put_buffer(W_buff);
+    cache.put_buffer(W_buff);
 }
 
 
@@ -501,9 +502,9 @@ export const svd_decompose = function(A, W, U, V, options) {
         n = i;
     }
 
-    var a_buff = jsfeat.cache.get_buffer((m*m)<<3);
-    var w_buff = jsfeat.cache.get_buffer(n<<3);
-    var v_buff = jsfeat.cache.get_buffer((n*n)<<3);
+    var a_buff = cache.get_buffer((m*m)<<3);
+    var w_buff = cache.get_buffer(n<<3);
+    var v_buff = cache.get_buffer((n*n)<<3);
 
     var a_mt = new jsfeat.matrix_t(m, m, dt, a_buff.data);
     var w_mt = new jsfeat.matrix_t(1, n, dt, w_buff.data);
@@ -570,9 +571,9 @@ export const svd_decompose = function(A, W, U, V, options) {
         }
     }
 
-    jsfeat.cache.put_buffer(a_buff);
-    jsfeat.cache.put_buffer(w_buff);
-    jsfeat.cache.put_buffer(v_buff);
+    cache.put_buffer(a_buff);
+    cache.put_buffer(w_buff);
+    cache.put_buffer(v_buff);
 
 }
 
@@ -583,9 +584,9 @@ export const svd_solve = function(A, X, B) {
     var sum=0.0,xsum=0.0,tol=0.0;
     var dt = A.type | jsfeat.C1_t;
 
-    var u_buff = jsfeat.cache.get_buffer((nrows*nrows)<<3);
-    var w_buff = jsfeat.cache.get_buffer(ncols<<3);
-    var v_buff = jsfeat.cache.get_buffer((ncols*ncols)<<3);
+    var u_buff = cache.get_buffer((nrows*nrows)<<3);
+    var w_buff = cache.get_buffer(ncols<<3);
+    var v_buff = cache.get_buffer((ncols*ncols)<<3);
 
     var u_mt = new jsfeat.matrix_t(nrows, nrows, dt, u_buff.data);
     var w_mt = new jsfeat.matrix_t(1, ncols, dt, w_buff.data);
@@ -610,9 +611,9 @@ export const svd_solve = function(A, X, B) {
         X.data[i] = xsum;
     }
 
-    jsfeat.cache.put_buffer(u_buff);
-    jsfeat.cache.put_buffer(w_buff);
-    jsfeat.cache.put_buffer(v_buff);
+    cache.put_buffer(u_buff);
+    cache.put_buffer(w_buff);
+    cache.put_buffer(v_buff);
 }
 
 export const svd_invert = function(Ai, A) {
@@ -622,9 +623,9 @@ export const svd_invert = function(Ai, A) {
     var sum=0.0,tol=0.0;
     var dt = A.type | jsfeat.C1_t;
 
-    var u_buff = jsfeat.cache.get_buffer((nrows*nrows)<<3);
-    var w_buff = jsfeat.cache.get_buffer(ncols<<3);
-    var v_buff = jsfeat.cache.get_buffer((ncols*ncols)<<3);
+    var u_buff = cache.get_buffer((nrows*nrows)<<3);
+    var w_buff = cache.get_buffer(ncols<<3);
+    var v_buff = cache.get_buffer((ncols*ncols)<<3);
 
     var u_mt = new jsfeat.matrix_t(nrows, nrows, dt, u_buff.data);
     var w_mt = new jsfeat.matrix_t(1, ncols, dt, w_buff.data);
@@ -645,17 +646,17 @@ export const svd_invert = function(Ai, A) {
         }
     }
 
-    jsfeat.cache.put_buffer(u_buff);
-    jsfeat.cache.put_buffer(w_buff);
-    jsfeat.cache.put_buffer(v_buff);
+    cache.put_buffer(u_buff);
+    cache.put_buffer(w_buff);
+    cache.put_buffer(v_buff);
 }
 
 export const eigenVV = function(A, vects, vals) {
     var n=A.cols,i=n*n;
     var dt = A.type | jsfeat.C1_t;
 
-    var a_buff = jsfeat.cache.get_buffer((n*n)<<3);
-    var w_buff = jsfeat.cache.get_buffer(n<<3);
+    var a_buff = cache.get_buffer((n*n)<<3);
+    var w_buff = cache.get_buffer(n<<3);
     var a_mt = new jsfeat.matrix_t(n, n, dt, a_buff.data);
     var w_mt = new jsfeat.matrix_t(1, n, dt, w_buff.data);
 
@@ -671,6 +672,6 @@ export const eigenVV = function(A, vects, vals) {
         }
     }
 
-    jsfeat.cache.put_buffer(a_buff);
-    jsfeat.cache.put_buffer(w_buff);
+    cache.put_buffer(a_buff);
+    cache.put_buffer(w_buff);
 }

@@ -3,13 +3,14 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as cache from './jsfeat_cache'
 
 var qsort_stack = new Int32Array(48*2);
 
 export const get_gaussian_kernel = function(size, sigma, kernel, data_type) {
     var i=0,x=0.0,t=0.0,sigma_x=0.0,scale_2x=0.0;
     var sum = 0.0;
-    var kern_node = jsfeat.cache.get_buffer(size<<2);
+    var kern_node = cache.get_buffer(size<<2);
     var _kernel = kern_node.f32;//new Float32Array(size);
 
     if((size&1) == 1 && size <= 7 && sigma <= 0) {
@@ -61,7 +62,7 @@ export const get_gaussian_kernel = function(size, sigma, kernel, data_type) {
         }
     }
 
-    jsfeat.cache.put_buffer(kern_node);
+    cache.put_buffer(kern_node);
 }
 
 // model is 3x3 matrix_t

@@ -4,6 +4,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as cache from './jsfeat_cache'
 import * as matmath from './jsfeat_mat_math'
 import * as linalg from './jsfeat_linalg'
 import * as math from './jsfeat_math'
@@ -80,8 +81,8 @@ import * as math from './jsfeat_math'
 
 	            iso_normalize_points(from, to, t0d, t1d, count);
 
-	            var a_buff = jsfeat.cache.get_buffer((2*count*6)<<3);
-                var b_buff = jsfeat.cache.get_buffer((2*count)<<3);
+	            var a_buff = cache.get_buffer((2*count*6)<<3);
+                var b_buff = cache.get_buffer((2*count)<<3);
 
                 var a_mt = new jsfeat.matrix_t(6, 2*count, dt, a_buff.data);
                 var b_mt = new jsfeat.matrix_t(1, 2*count, dt, b_buff.data);
@@ -119,8 +120,8 @@ import * as math from './jsfeat_math'
 			    matmath.multiply_3x3(model, model, T0);
 
 			    // free buffer
-			    jsfeat.cache.put_buffer(a_buff);
-			    jsfeat.cache.put_buffer(b_buff);
+			    cache.put_buffer(a_buff);
+			    cache.put_buffer(b_buff);
 
 			    return 1;
 	        }
@@ -468,9 +469,9 @@ import * as math from './jsfeat_math'
 			    var mc=model.cols,mr=model.rows;
                 var dt = model.type | jsfeat.C1_t;
 
-			    var m_buff = jsfeat.cache.get_buffer((mc*mr)<<3);
-			    var ms_buff = jsfeat.cache.get_buffer(count);
-			    var err_buff = jsfeat.cache.get_buffer(count<<2);
+			    var m_buff = cache.get_buffer((mc*mr)<<3);
+			    var ms_buff = cache.get_buffer(count);
+			    var err_buff = cache.get_buffer(count<<2);
 			    var M = new jsfeat.matrix_t(mc, mr, dt, m_buff.data);
 			    var curr_mask = new jsfeat.matrix_t(count, 1, jsfeat.U8C1_t, ms_buff.data);
 
@@ -482,9 +483,9 @@ import * as math from './jsfeat_math'
 			    // special case
 			    if(count == model_points) {
 			        if(kernel.run(from, to, M, count) <= 0) {
-			        	jsfeat.cache.put_buffer(m_buff);
-			        	jsfeat.cache.put_buffer(ms_buff);
-			        	jsfeat.cache.put_buffer(err_buff);
+			        	cache.put_buffer(m_buff);
+			        	cache.put_buffer(ms_buff);
+			        	cache.put_buffer(err_buff);
 			        	return false;
 			        }
 
@@ -494,9 +495,9 @@ import * as math from './jsfeat_math'
 			        		mask.data[count] = 1;
 			        	}
 			        }
-			        jsfeat.cache.put_buffer(m_buff);
-			        jsfeat.cache.put_buffer(ms_buff);
-			        jsfeat.cache.put_buffer(err_buff);
+			        cache.put_buffer(m_buff);
+			        cache.put_buffer(ms_buff);
+			        cache.put_buffer(err_buff);
 			        return true;
 			    }
 
@@ -505,9 +506,9 @@ import * as math from './jsfeat_math'
 			        found = get_subset(kernel, from, to, model_points, count, subset0, subset1);
 			        if(!found) {
 			            if(iter == 0) {
-			            	jsfeat.cache.put_buffer(m_buff);
-			            	jsfeat.cache.put_buffer(ms_buff);
-			            	jsfeat.cache.put_buffer(err_buff);
+			            	cache.put_buffer(m_buff);
+			            	cache.put_buffer(ms_buff);
+			            	cache.put_buffer(err_buff);
 			                return false;
 			            }
 			            break;
@@ -530,9 +531,9 @@ import * as math from './jsfeat_math'
 			        }
 			    }
 
-			    jsfeat.cache.put_buffer(m_buff);
-			    jsfeat.cache.put_buffer(ms_buff);
-			    jsfeat.cache.put_buffer(err_buff);
+			    cache.put_buffer(m_buff);
+			    cache.put_buffer(ms_buff);
+			    cache.put_buffer(err_buff);
 
 			    return result;
     		},
@@ -553,9 +554,9 @@ import * as math from './jsfeat_math'
 			    var mc=model.cols,mr=model.rows;
                 var dt = model.type | jsfeat.C1_t;
 
-			    var m_buff = jsfeat.cache.get_buffer((mc*mr)<<3);
-			    var ms_buff = jsfeat.cache.get_buffer(count);
-			    var err_buff = jsfeat.cache.get_buffer(count<<2);
+			    var m_buff = cache.get_buffer((mc*mr)<<3);
+			    var ms_buff = cache.get_buffer(count);
+			    var err_buff = cache.get_buffer(count<<2);
 			    var M = new jsfeat.matrix_t(mc, mr, dt, m_buff.data);
 			    var curr_mask = new jsfeat.matrix_t(count, 1, jsfeat.U8_t|jsfeat.C1_t, ms_buff.data);
 
@@ -571,9 +572,9 @@ import * as math from './jsfeat_math'
 			    // special case
 			    if(count == model_points) {
 			        if(kernel.run(from, to, M, count) <= 0) {
-			        	jsfeat.cache.put_buffer(m_buff);
-			        	jsfeat.cache.put_buffer(ms_buff);
-			        	jsfeat.cache.put_buffer(err_buff);
+			        	cache.put_buffer(m_buff);
+			        	cache.put_buffer(ms_buff);
+			        	cache.put_buffer(err_buff);
 			        	return false;
 			        }
 
@@ -583,9 +584,9 @@ import * as math from './jsfeat_math'
 			        		mask.data[count] = 1;
 			        	}
 			        }
-			        jsfeat.cache.put_buffer(m_buff);
-			        jsfeat.cache.put_buffer(ms_buff);
-			        jsfeat.cache.put_buffer(err_buff);
+			        cache.put_buffer(m_buff);
+			        cache.put_buffer(ms_buff);
+			        cache.put_buffer(err_buff);
 			        return true;
 			    }
 
@@ -594,9 +595,9 @@ import * as math from './jsfeat_math'
 			        found = get_subset(kernel, from, to, model_points, count, subset0, subset1);
 			        if(!found) {
 			            if(iter == 0) {
-			            	jsfeat.cache.put_buffer(m_buff);
-			            	jsfeat.cache.put_buffer(ms_buff);
-			            	jsfeat.cache.put_buffer(err_buff);
+			            	cache.put_buffer(m_buff);
+			            	cache.put_buffer(ms_buff);
+			            	cache.put_buffer(err_buff);
 			                return false;
 			            }
 			            break;
@@ -628,9 +629,9 @@ import * as math from './jsfeat_math'
 			        result = numinliers >= model_points;
 			    }
 
-			    jsfeat.cache.put_buffer(m_buff);
-			    jsfeat.cache.put_buffer(ms_buff);
-			    jsfeat.cache.put_buffer(err_buff);
+			    cache.put_buffer(m_buff);
+			    cache.put_buffer(ms_buff);
+			    cache.put_buffer(err_buff);
 
 			    return result;
     		}

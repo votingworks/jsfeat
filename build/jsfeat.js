@@ -10,12 +10,74 @@
      * @author Eugene Zatepyakin / http://inspirit.ru/
      */
 
+    // very primitive array cache, still need testing if it helps
+    // of course V8 has its own powerful cache sys but i'm not sure
+    // it caches several multichannel 640x480 buffer creations each frame
+
+    var _pool_node_t = (function () {
+        function _pool_node_t(size_in_bytes) {
+            this.next = null;
+            this.data = new jsfeat.data_t(size_in_bytes);
+            this.size = this.data.size;
+            this.buffer = this.data.buffer;
+            this.u8 = this.data.u8;
+            this.i32 = this.data.i32;
+            this.f32 = this.data.f32;
+            this.f64 = this.data.f64;
+        }
+        _pool_node_t.prototype.resize = function(size_in_bytes) {
+            delete this.data;
+            this.data = new jsfeat.data_t(size_in_bytes);
+            this.size = this.data.size;
+            this.buffer = this.data.buffer;
+            this.u8 = this.data.u8;
+            this.i32 = this.data.i32;
+            this.f32 = this.data.f32;
+            this.f64 = this.data.f64;
+        };
+        return _pool_node_t;
+    })();
+
+    var _pool_head, _pool_tail;
+
+    const allocate = function(capacity, data_size) {
+        _pool_head = _pool_tail = new _pool_node_t(data_size);
+        for (var i = 0; i < capacity; ++i) {
+            var node = new _pool_node_t(data_size);
+            _pool_tail = _pool_tail.next = node;
+        }
+    };
+
+    const get_buffer = function(size_in_bytes) {
+        // assume we have enough free nodes
+        var node = _pool_head;
+        _pool_head = _pool_head.next;
+
+        if(size_in_bytes > node.size) {
+            node.resize(size_in_bytes);
+        }
+
+        return node;
+    };
+
+    const put_buffer = function(node) {
+        _pool_tail = _pool_tail.next = node;
+    };
+
+    // for now we dont need more than 30 buffers
+    // if having cache sys really helps we can add auto extending sys
+    allocate(30, 640*4);
+
+    /**
+     * @author Eugene Zatepyakin / http://inspirit.ru/
+     */
+
     var qsort_stack = new Int32Array(48*2);
 
     const get_gaussian_kernel = function(size, sigma, kernel, data_type) {
         var i=0,x=0.0,t=0.0,sigma_x=0.0,scale_2x=0.0;
         var sum = 0.0;
-        var kern_node = jsfeat.cache.get_buffer(size<<2);
+        var kern_node = get_buffer(size<<2);
         var _kernel = kern_node.f32;//new Float32Array(size);
 
         if((size&1) == 1 && size <= 7 && sigma <= 0) {
@@ -67,7 +129,7 @@
             }
         }
 
-        jsfeat.cache.put_buffer(kern_node);
+        put_buffer(kern_node);
     };
 
     // model is 3x3 matrix_t
@@ -427,9 +489,9 @@
         var dx=0,dy=0,sx=0,sy=0,sx1=0,sx2=0,i=0,k=0,fsx1=0.0,fsx2=0.0;
         var a=0,b=0,dxn=0,alpha=0,beta=0,beta1=0;
 
-        var buf_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-        var sum_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-        var xofs_node = jsfeat.cache.get_buffer((w*2*3)<<2);
+        var buf_node = get_buffer((nw*ch)<<2);
+        var sum_node = get_buffer((nw*ch)<<2);
+        var xofs_node = get_buffer((w*2*3)<<2);
 
         var buf = buf_node.i32;
         var sum = sum_node.i32;
@@ -500,9 +562,9 @@
             }
         }
 
-        jsfeat.cache.put_buffer(sum_node);
-        jsfeat.cache.put_buffer(buf_node);
-        jsfeat.cache.put_buffer(xofs_node);
+        put_buffer(sum_node);
+        put_buffer(buf_node);
+        put_buffer(xofs_node);
     };
 
     var _resample = function(src, dst, nw, nh) {
@@ -514,9 +576,9 @@
         var dx=0,dy=0,sx=0,sy=0,sx1=0,sx2=0,i=0,k=0,fsx1=0.0,fsx2=0.0;
         var a=0,b=0,dxn=0,alpha=0.0,beta=0.0,beta1=0.0;
 
-        var buf_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-        var sum_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-        var xofs_node = jsfeat.cache.get_buffer((w*2*3)<<2);
+        var buf_node = get_buffer((nw*ch)<<2);
+        var sum_node = get_buffer((nw*ch)<<2);
+        var xofs_node = get_buffer((w*2*3)<<2);
 
         var buf = buf_node.f32;
         var sum = sum_node.f32;
@@ -586,9 +648,9 @@
                 }
             }
         }
-        jsfeat.cache.put_buffer(sum_node);
-        jsfeat.cache.put_buffer(buf_node);
-        jsfeat.cache.put_buffer(xofs_node);
+        put_buffer(sum_node);
+        put_buffer(buf_node);
+        put_buffer(xofs_node);
     };
 
     var _convol_u8 = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel) {
@@ -834,7 +896,7 @@
         var radiusPlusOne = (radius + 1)|0, radiusPlus2 = (radiusPlusOne+1)|0;
         var scale = options&jsfeat.BOX_BLUR_NOSCALE ? 1 : (1.0 / (windowSize*windowSize));
 
-        var tmp_buff = jsfeat.cache.get_buffer((w*h)<<2);
+        var tmp_buff = get_buffer((w*h)<<2);
 
         var sum=0, dstIndex=0, srcIndex = 0, nextPixelIndex=0, previousPixelIndex=0;
         var data_i32 = tmp_buff.i32; // to prevent overflow
@@ -990,7 +1052,7 @@
             }
         }
 
-        jsfeat.cache.put_buffer(tmp_buff);
+        put_buffer(tmp_buff);
     };
 
     const gaussian_blur = function(src, dst, kernel_size, sigma) {
@@ -1006,8 +1068,8 @@
         var src_d = src.data, dst_d = dst.data;
         var buf,filter,buf_sz=(kernel_size + Math.max(h, w))|0;
 
-        var buf_node = jsfeat.cache.get_buffer(buf_sz<<2);
-        var filt_node = jsfeat.cache.get_buffer(kernel_size<<2);
+        var buf_node = get_buffer(buf_sz<<2);
+        var filt_node = get_buffer(kernel_size<<2);
 
         if(is_u8) {
             buf = buf_node.i32;
@@ -1028,8 +1090,8 @@
             _convol(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel);
         }
 
-        jsfeat.cache.put_buffer(buf_node);
-        jsfeat.cache.put_buffer(filt_node);
+        put_buffer(buf_node);
+        put_buffer(filt_node);
     };
 
     const hough_transform = function( img, rho_res, theta_res, threshold ) {
@@ -1150,8 +1212,8 @@
 
         var img = src.data, gxgy=dst.data;
 
-        var buf0_node = jsfeat.cache.get_buffer((w+2)<<2);
-        var buf1_node = jsfeat.cache.get_buffer((w+2)<<2);
+        var buf0_node = get_buffer((w+2)<<2);
+        var buf1_node = get_buffer((w+2)<<2);
 
         if(src.type&jsfeat.U8_t || src.type&jsfeat.S32_t) {
             trow0 = buf0_node.i32;
@@ -1203,8 +1265,8 @@
                 gxgy[drow++] = ( ((trow1[x+2] + trow1[x])*3 + trow1[x+1]*10) );
             }
         }
-        jsfeat.cache.put_buffer(buf0_node);
-        jsfeat.cache.put_buffer(buf1_node);
+        put_buffer(buf0_node);
+        put_buffer(buf1_node);
     };
 
     // compute gradient using Sobel kernel [1 2 1] * [-1 0 1]^T
@@ -1219,8 +1281,8 @@
 
         var img = src.data, gxgy=dst.data;
 
-        var buf0_node = jsfeat.cache.get_buffer((w+2)<<2);
-        var buf1_node = jsfeat.cache.get_buffer((w+2)<<2);
+        var buf0_node = get_buffer((w+2)<<2);
+        var buf1_node = get_buffer((w+2)<<2);
 
         if(src.type&jsfeat.U8_t || src.type&jsfeat.S32_t) {
             trow0 = buf0_node.i32;
@@ -1272,8 +1334,8 @@
                 gxgy[drow++] = ( trow1[x+2] + trow1[x] + trow1[x+1]*2 );
             }
         }
-        jsfeat.cache.put_buffer(buf0_node);
-        jsfeat.cache.put_buffer(buf1_node);
+        put_buffer(buf0_node);
+        put_buffer(buf1_node);
     };
 
     // please note: 
@@ -1391,7 +1453,7 @@
         var dst_d=dst.data,size=w*h;
         var i=0,prev=0,hist0,norm;
 
-        var hist0_node = jsfeat.cache.get_buffer(256<<2);
+        var hist0_node = get_buffer(256<<2);
         hist0 = hist0_node.i32;
         for(; i < 256; ++i) hist0[i] = 0;
         for (i = 0; i < size; ++i) {
@@ -1407,7 +1469,7 @@
         for (i = 0; i < size; ++i) {
             dst_d[i] = (hist0[src_d[i]] * norm + 0.5)|0;
         }
-        jsfeat.cache.put_buffer(hist0_node);
+        put_buffer(hist0_node);
     };
 
     const canny = function(src, dst, low_thresh, high_thresh) {
@@ -1420,10 +1482,10 @@
         var tg22x=0,tg67x=0;
 
         // cache buffers
-        var dxdy_node = jsfeat.cache.get_buffer((h * w2)<<2);
-        var buf_node = jsfeat.cache.get_buffer((3 * (w + 2))<<2);
-        var map_node = jsfeat.cache.get_buffer(((h+2) * (w + 2))<<2);
-        var stack_node = jsfeat.cache.get_buffer((h * w)<<2);
+        var dxdy_node = get_buffer((h * w2)<<2);
+        var buf_node = get_buffer((3 * (w + 2))<<2);
+        var map_node = get_buffer(((h+2) * (w + 2))<<2);
+        var stack_node = get_buffer((h * w)<<2);
         
 
         var buf = buf_node.i32;
@@ -1569,10 +1631,10 @@
         }
 
         // free buffers
-        jsfeat.cache.put_buffer(dxdy_node);
-        jsfeat.cache.put_buffer(buf_node);
-        jsfeat.cache.put_buffer(map_node);
-        jsfeat.cache.put_buffer(stack_node);
+        put_buffer(dxdy_node);
+        put_buffer(buf_node);
+        put_buffer(map_node);
+        put_buffer(stack_node);
     };
 
     // transform is 3x3 matrix_t
@@ -1914,80 +1976,6 @@
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
-     */
-
-    (function(global) {
-        //
-
-        var cache = (function() {
-
-            // very primitive array cache, still need testing if it helps
-            // of course V8 has its own powerful cache sys but i'm not sure
-            // it caches several multichannel 640x480 buffer creations each frame
-
-            var _pool_node_t = (function () {
-                function _pool_node_t(size_in_bytes) {
-                    this.next = null;
-                    this.data = new jsfeat.data_t(size_in_bytes);
-                    this.size = this.data.size;
-                    this.buffer = this.data.buffer;
-                    this.u8 = this.data.u8;
-                    this.i32 = this.data.i32;
-                    this.f32 = this.data.f32;
-                    this.f64 = this.data.f64;
-                }
-                _pool_node_t.prototype.resize = function(size_in_bytes) {
-                    delete this.data;
-                    this.data = new jsfeat.data_t(size_in_bytes);
-                    this.size = this.data.size;
-                    this.buffer = this.data.buffer;
-                    this.u8 = this.data.u8;
-                    this.i32 = this.data.i32;
-                    this.f32 = this.data.f32;
-                    this.f64 = this.data.f64;
-                };
-                return _pool_node_t;
-            })();
-
-            var _pool_head, _pool_tail;
-
-            return {
-
-                allocate: function(capacity, data_size) {
-                    _pool_head = _pool_tail = new _pool_node_t(data_size);
-                    for (var i = 0; i < capacity; ++i) {
-                        var node = new _pool_node_t(data_size);
-                        _pool_tail = _pool_tail.next = node;
-                    }
-                },
-
-                get_buffer: function(size_in_bytes) {
-                    // assume we have enough free nodes
-                    var node = _pool_head;
-                    _pool_head = _pool_head.next;
-
-                    if(size_in_bytes > node.size) {
-                        node.resize(size_in_bytes);
-                    }
-
-                    return node;
-                },
-
-                put_buffer: function(node) {
-                    _pool_tail = _pool_tail.next = node;
-                }
-            };
-        })();
-
-        global.cache = cache;
-        // for now we dont need more than 30 buffers
-        // if having cache sys really helps we can add auto extending sys
-        cache.allocate(30, 640*4);
-
-    })(jsfeat);
-
-    /**
-     * @author Eugene Zatepyakin / http://inspirit.ru/
      *
      */
 
@@ -2254,8 +2242,8 @@
         var iters=0,max_iter=n*n*30;
         var mv=0.0,val=0.0,p=0.0,y=0.0,t=0.0,s=0.0,c=0.0,a0=0.0,b0=0.0;
 
-        var indR_buff = jsfeat.cache.get_buffer(n<<2);
-        var indC_buff = jsfeat.cache.get_buffer(n<<2);
+        var indR_buff = get_buffer(n<<2);
+        var indC_buff = get_buffer(n<<2);
         var indR = indR_buff.i32;
         var indC = indC_buff.i32;
 
@@ -2397,8 +2385,8 @@
         }
 
 
-        jsfeat.cache.put_buffer(indR_buff);
-        jsfeat.cache.put_buffer(indC_buff);
+        put_buffer(indR_buff);
+        put_buffer(indC_buff);
     };
 
     var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
@@ -2411,7 +2399,7 @@
         var seed = 0x1234;
         var val=0.0,val0=0.0,asum=0.0;
 
-        var W_buff = jsfeat.cache.get_buffer(n<<3);
+        var W_buff = get_buffer(n<<3);
         var W = W_buff.f64;
         
         for(; i < n; i++) {
@@ -2539,7 +2527,7 @@
         }
         
         if(!Vt) {
-            jsfeat.cache.put_buffer(W_buff);
+            put_buffer(W_buff);
             return;
         }
 
@@ -2589,7 +2577,7 @@
             }
         }
 
-        jsfeat.cache.put_buffer(W_buff);
+        put_buffer(W_buff);
     };
 
 
@@ -2722,9 +2710,9 @@
             n = i;
         }
 
-        var a_buff = jsfeat.cache.get_buffer((m*m)<<3);
-        var w_buff = jsfeat.cache.get_buffer(n<<3);
-        var v_buff = jsfeat.cache.get_buffer((n*n)<<3);
+        var a_buff = get_buffer((m*m)<<3);
+        var w_buff = get_buffer(n<<3);
+        var v_buff = get_buffer((n*n)<<3);
 
         var a_mt = new jsfeat.matrix_t(m, m, dt, a_buff.data);
         var w_mt = new jsfeat.matrix_t(1, n, dt, w_buff.data);
@@ -2791,9 +2779,9 @@
             }
         }
 
-        jsfeat.cache.put_buffer(a_buff);
-        jsfeat.cache.put_buffer(w_buff);
-        jsfeat.cache.put_buffer(v_buff);
+        put_buffer(a_buff);
+        put_buffer(w_buff);
+        put_buffer(v_buff);
 
     };
 
@@ -2804,9 +2792,9 @@
         var sum=0.0,xsum=0.0,tol=0.0;
         var dt = A.type | jsfeat.C1_t;
 
-        var u_buff = jsfeat.cache.get_buffer((nrows*nrows)<<3);
-        var w_buff = jsfeat.cache.get_buffer(ncols<<3);
-        var v_buff = jsfeat.cache.get_buffer((ncols*ncols)<<3);
+        var u_buff = get_buffer((nrows*nrows)<<3);
+        var w_buff = get_buffer(ncols<<3);
+        var v_buff = get_buffer((ncols*ncols)<<3);
 
         var u_mt = new jsfeat.matrix_t(nrows, nrows, dt, u_buff.data);
         var w_mt = new jsfeat.matrix_t(1, ncols, dt, w_buff.data);
@@ -2831,9 +2819,9 @@
             X.data[i] = xsum;
         }
 
-        jsfeat.cache.put_buffer(u_buff);
-        jsfeat.cache.put_buffer(w_buff);
-        jsfeat.cache.put_buffer(v_buff);
+        put_buffer(u_buff);
+        put_buffer(w_buff);
+        put_buffer(v_buff);
     };
 
     const svd_invert = function(Ai, A) {
@@ -2843,9 +2831,9 @@
         var sum=0.0,tol=0.0;
         var dt = A.type | jsfeat.C1_t;
 
-        var u_buff = jsfeat.cache.get_buffer((nrows*nrows)<<3);
-        var w_buff = jsfeat.cache.get_buffer(ncols<<3);
-        var v_buff = jsfeat.cache.get_buffer((ncols*ncols)<<3);
+        var u_buff = get_buffer((nrows*nrows)<<3);
+        var w_buff = get_buffer(ncols<<3);
+        var v_buff = get_buffer((ncols*ncols)<<3);
 
         var u_mt = new jsfeat.matrix_t(nrows, nrows, dt, u_buff.data);
         var w_mt = new jsfeat.matrix_t(1, ncols, dt, w_buff.data);
@@ -2866,17 +2854,17 @@
             }
         }
 
-        jsfeat.cache.put_buffer(u_buff);
-        jsfeat.cache.put_buffer(w_buff);
-        jsfeat.cache.put_buffer(v_buff);
+        put_buffer(u_buff);
+        put_buffer(w_buff);
+        put_buffer(v_buff);
     };
 
     const eigenVV = function(A, vects, vals) {
         var n=A.cols,i=n*n;
         var dt = A.type | jsfeat.C1_t;
 
-        var a_buff = jsfeat.cache.get_buffer((n*n)<<3);
-        var w_buff = jsfeat.cache.get_buffer(n<<3);
+        var a_buff = get_buffer((n*n)<<3);
+        var w_buff = get_buffer(n<<3);
         var a_mt = new jsfeat.matrix_t(n, n, dt, a_buff.data);
         var w_mt = new jsfeat.matrix_t(1, n, dt, w_buff.data);
 
@@ -2892,8 +2880,8 @@
             }
         }
 
-        jsfeat.cache.put_buffer(a_buff);
-        jsfeat.cache.put_buffer(w_buff);
+        put_buffer(a_buff);
+        put_buffer(w_buff);
     };
 
     var linalg = /*#__PURE__*/Object.freeze({
@@ -2982,8 +2970,8 @@
 
     	            iso_normalize_points(from, to, t0d, t1d, count);
 
-    	            var a_buff = jsfeat.cache.get_buffer((2*count*6)<<3);
-                    var b_buff = jsfeat.cache.get_buffer((2*count)<<3);
+    	            var a_buff = get_buffer((2*count*6)<<3);
+                    var b_buff = get_buffer((2*count)<<3);
 
                     var a_mt = new jsfeat.matrix_t(6, 2*count, dt, a_buff.data);
                     var b_mt = new jsfeat.matrix_t(1, 2*count, dt, b_buff.data);
@@ -3021,8 +3009,8 @@
     			    multiply_3x3(model, model, T0);
 
     			    // free buffer
-    			    jsfeat.cache.put_buffer(a_buff);
-    			    jsfeat.cache.put_buffer(b_buff);
+    			    put_buffer(a_buff);
+    			    put_buffer(b_buff);
 
     			    return 1;
     	        };
@@ -3370,9 +3358,9 @@
     			    var mc=model.cols,mr=model.rows;
                     var dt = model.type | jsfeat.C1_t;
 
-    			    var m_buff = jsfeat.cache.get_buffer((mc*mr)<<3);
-    			    var ms_buff = jsfeat.cache.get_buffer(count);
-    			    var err_buff = jsfeat.cache.get_buffer(count<<2);
+    			    var m_buff = get_buffer((mc*mr)<<3);
+    			    var ms_buff = get_buffer(count);
+    			    var err_buff = get_buffer(count<<2);
     			    var M = new jsfeat.matrix_t(mc, mr, dt, m_buff.data);
     			    var curr_mask = new jsfeat.matrix_t(count, 1, jsfeat.U8C1_t, ms_buff.data);
 
@@ -3384,9 +3372,9 @@
     			    // special case
     			    if(count == model_points) {
     			        if(kernel.run(from, to, M, count) <= 0) {
-    			        	jsfeat.cache.put_buffer(m_buff);
-    			        	jsfeat.cache.put_buffer(ms_buff);
-    			        	jsfeat.cache.put_buffer(err_buff);
+    			        	put_buffer(m_buff);
+    			        	put_buffer(ms_buff);
+    			        	put_buffer(err_buff);
     			        	return false;
     			        }
 
@@ -3396,9 +3384,9 @@
     			        		mask.data[count] = 1;
     			        	}
     			        }
-    			        jsfeat.cache.put_buffer(m_buff);
-    			        jsfeat.cache.put_buffer(ms_buff);
-    			        jsfeat.cache.put_buffer(err_buff);
+    			        put_buffer(m_buff);
+    			        put_buffer(ms_buff);
+    			        put_buffer(err_buff);
     			        return true;
     			    }
 
@@ -3407,9 +3395,9 @@
     			        found = get_subset(kernel, from, to, model_points, count, subset0, subset1);
     			        if(!found) {
     			            if(iter == 0) {
-    			            	jsfeat.cache.put_buffer(m_buff);
-    			            	jsfeat.cache.put_buffer(ms_buff);
-    			            	jsfeat.cache.put_buffer(err_buff);
+    			            	put_buffer(m_buff);
+    			            	put_buffer(ms_buff);
+    			            	put_buffer(err_buff);
     			                return false;
     			            }
     			            break;
@@ -3432,9 +3420,9 @@
     			        }
     			    }
 
-    			    jsfeat.cache.put_buffer(m_buff);
-    			    jsfeat.cache.put_buffer(ms_buff);
-    			    jsfeat.cache.put_buffer(err_buff);
+    			    put_buffer(m_buff);
+    			    put_buffer(ms_buff);
+    			    put_buffer(err_buff);
 
     			    return result;
         		},
@@ -3455,9 +3443,9 @@
     			    var mc=model.cols,mr=model.rows;
                     var dt = model.type | jsfeat.C1_t;
 
-    			    var m_buff = jsfeat.cache.get_buffer((mc*mr)<<3);
-    			    var ms_buff = jsfeat.cache.get_buffer(count);
-    			    var err_buff = jsfeat.cache.get_buffer(count<<2);
+    			    var m_buff = get_buffer((mc*mr)<<3);
+    			    var ms_buff = get_buffer(count);
+    			    var err_buff = get_buffer(count<<2);
     			    var M = new jsfeat.matrix_t(mc, mr, dt, m_buff.data);
     			    var curr_mask = new jsfeat.matrix_t(count, 1, jsfeat.U8_t|jsfeat.C1_t, ms_buff.data);
 
@@ -3473,9 +3461,9 @@
     			    // special case
     			    if(count == model_points) {
     			        if(kernel.run(from, to, M, count) <= 0) {
-    			        	jsfeat.cache.put_buffer(m_buff);
-    			        	jsfeat.cache.put_buffer(ms_buff);
-    			        	jsfeat.cache.put_buffer(err_buff);
+    			        	put_buffer(m_buff);
+    			        	put_buffer(ms_buff);
+    			        	put_buffer(err_buff);
     			        	return false;
     			        }
 
@@ -3485,9 +3473,9 @@
     			        		mask.data[count] = 1;
     			        	}
     			        }
-    			        jsfeat.cache.put_buffer(m_buff);
-    			        jsfeat.cache.put_buffer(ms_buff);
-    			        jsfeat.cache.put_buffer(err_buff);
+    			        put_buffer(m_buff);
+    			        put_buffer(ms_buff);
+    			        put_buffer(err_buff);
     			        return true;
     			    }
 
@@ -3496,9 +3484,9 @@
     			        found = get_subset(kernel, from, to, model_points, count, subset0, subset1);
     			        if(!found) {
     			            if(iter == 0) {
-    			            	jsfeat.cache.put_buffer(m_buff);
-    			            	jsfeat.cache.put_buffer(ms_buff);
-    			            	jsfeat.cache.put_buffer(err_buff);
+    			            	put_buffer(m_buff);
+    			            	put_buffer(ms_buff);
+    			            	put_buffer(err_buff);
     			                return false;
     			            }
     			            break;
@@ -3530,9 +3518,9 @@
     			        result = numinliers >= model_points;
     			    }
 
-    			    jsfeat.cache.put_buffer(m_buff);
-    			    jsfeat.cache.put_buffer(ms_buff);
-    			    jsfeat.cache.put_buffer(err_buff);
+    			    put_buffer(m_buff);
+    			    put_buffer(ms_buff);
+    			    put_buffer(err_buff);
 
     			    return result;
         		}
@@ -3636,8 +3624,8 @@
         var K = 8, N = 25;
         var img = src.data, w = src.cols, h = src.rows;
         var i=0, j=0, k=0, vt=0, x=0, m3=0;
-        var buf_node = jsfeat.cache.get_buffer(3 * w);
-        var cpbuf_node = jsfeat.cache.get_buffer(((w+1)*3)<<2);
+        var buf_node = get_buffer(3 * w);
+        var cpbuf_node = get_buffer(((w+1)*3)<<2);
         var buf = buf_node.u8;
         var cpbuf = cpbuf_node.i32;
         var pixel = pixel_off;
@@ -3784,8 +3772,8 @@
                 }
             }
         } // y loop
-        jsfeat.cache.put_buffer(buf_node);
-        jsfeat.cache.put_buffer(cpbuf_node);
+        put_buffer(buf_node);
+        put_buffer(cpbuf_node);
         return corners_cnt;
     };
 
@@ -3840,7 +3828,7 @@
                     var w=src.cols, h=src.rows, srd_d=src.data;
                     var Dxx = 5, Dyy = (5 * w)|0;
                     var Dxy = (3 + 3 * w)|0, Dyx = (3 - 3 * w)|0;
-                    var lap_buf = jsfeat.cache.get_buffer((w*h)<<2);
+                    var lap_buf = get_buffer((w*h)<<2);
                     var laplacian = lap_buf.i32;
                     var lv=0, row=0,rowx=0,min_eigen_value=0,pt;
                     var number_of_points = 0;
@@ -3885,7 +3873,7 @@
                         }
                     }
 
-                    jsfeat.cache.put_buffer(lap_buf);
+                    put_buffer(lap_buf);
 
                     return number_of_points;
                 }
@@ -4685,9 +4673,9 @@
         var img_prev=prev_imgs[0].data,img_next=next_imgs[0].data;
         var w0 = prev_imgs[0].cols, h0 = prev_imgs[0].rows,lw=0,lh=0;
 
-        var iwin_node = jsfeat.cache.get_buffer(win_area<<2);
-        var deriv_iwin_node = jsfeat.cache.get_buffer(win_area2<<2);
-        var deriv_lev_node = jsfeat.cache.get_buffer((h0*(w0<<1))<<2);
+        var iwin_node = get_buffer(win_area<<2);
+        var deriv_iwin_node = get_buffer(win_area2<<2);
+        var deriv_lev_node = get_buffer((h0*(w0<<1))<<2);
 
         var deriv_m = new jsfeat.matrix_t(w0, h0, jsfeat.S32C2_t, deriv_lev_node.data);
 
@@ -4893,9 +4881,9 @@
             } // points loop
         } // levels loop
 
-        jsfeat.cache.put_buffer(iwin_node);
-        jsfeat.cache.put_buffer(deriv_iwin_node);
-        jsfeat.cache.put_buffer(deriv_lev_node);
+        put_buffer(iwin_node);
+        put_buffer(deriv_iwin_node);
+        put_buffer(deriv_lev_node);
     };
 
     var optical_flow_lk = /*#__PURE__*/Object.freeze({

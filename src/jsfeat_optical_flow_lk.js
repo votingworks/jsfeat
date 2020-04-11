@@ -5,6 +5,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as cache from './jsfeat_cache'
 import { scharr_derivatives as scharr_deriv } from './jsfeat_imgproc'
 
 export const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_size, max_iter, status, eps, min_eigen_threshold) {
@@ -20,9 +21,9 @@ export const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_s
     var img_prev=prev_imgs[0].data,img_next=next_imgs[0].data;
     var w0 = prev_imgs[0].cols, h0 = prev_imgs[0].rows,lw=0,lh=0;
 
-    var iwin_node = jsfeat.cache.get_buffer(win_area<<2);
-    var deriv_iwin_node = jsfeat.cache.get_buffer(win_area2<<2);
-    var deriv_lev_node = jsfeat.cache.get_buffer((h0*(w0<<1))<<2);
+    var iwin_node = cache.get_buffer(win_area<<2);
+    var deriv_iwin_node = cache.get_buffer(win_area2<<2);
+    var deriv_lev_node = cache.get_buffer((h0*(w0<<1))<<2);
 
     var deriv_m = new jsfeat.matrix_t(w0, h0, jsfeat.S32C2_t, deriv_lev_node.data);
 
@@ -228,7 +229,7 @@ export const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_s
         } // points loop
     } // levels loop
 
-    jsfeat.cache.put_buffer(iwin_node);
-    jsfeat.cache.put_buffer(deriv_iwin_node);
-    jsfeat.cache.put_buffer(deriv_lev_node);
+    cache.put_buffer(iwin_node);
+    cache.put_buffer(deriv_iwin_node);
+    cache.put_buffer(deriv_lev_node);
 }

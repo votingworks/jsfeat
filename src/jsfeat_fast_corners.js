@@ -4,7 +4,7 @@
  * This is FAST corner detector, contributed to OpenCV by the author, Edward Rosten.
  */
 
-import jsfeat from './jsfeat_namespace'
+import * as cache from './jsfeat_cache'
 
 /*
 The references are:
@@ -89,8 +89,8 @@ export const detect = function(src, corners, border) {
     var K = 8, N = 25;
     var img = src.data, w = src.cols, h = src.rows;
     var i=0, j=0, k=0, vt=0, x=0, m3=0;
-    var buf_node = jsfeat.cache.get_buffer(3 * w);
-    var cpbuf_node = jsfeat.cache.get_buffer(((w+1)*3)<<2);
+    var buf_node = cache.get_buffer(3 * w);
+    var cpbuf_node = cache.get_buffer(((w+1)*3)<<2);
     var buf = buf_node.u8;
     var cpbuf = cpbuf_node.i32;
     var pixel = pixel_off;
@@ -237,8 +237,8 @@ export const detect = function(src, corners, border) {
             }
         }
     } // y loop
-    jsfeat.cache.put_buffer(buf_node);
-    jsfeat.cache.put_buffer(cpbuf_node);
+    cache.put_buffer(buf_node);
+    cache.put_buffer(cpbuf_node);
     return corners_cnt;
 }
 

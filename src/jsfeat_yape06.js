@@ -7,6 +7,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as cache from './jsfeat_cache'
 
 (function(global) {
     "use strict";
@@ -44,7 +45,7 @@ import jsfeat from './jsfeat_namespace'
                 var w=src.cols, h=src.rows, srd_d=src.data;
                 var Dxx = 5, Dyy = (5 * w)|0;
                 var Dxy = (3 + 3 * w)|0, Dyx = (3 - 3 * w)|0;
-                var lap_buf = jsfeat.cache.get_buffer((w*h)<<2);
+                var lap_buf = cache.get_buffer((w*h)<<2);
                 var laplacian = lap_buf.i32;
                 var lv=0, row=0,rowx=0,min_eigen_value=0,pt;
                 var number_of_points = 0;
@@ -89,7 +90,7 @@ import jsfeat from './jsfeat_namespace'
                     }
                 }
 
-                jsfeat.cache.put_buffer(lap_buf);
+                cache.put_buffer(lap_buf);
 
                 return number_of_points;
             }
