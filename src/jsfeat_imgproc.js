@@ -2,9 +2,19 @@
  * @author Eugene Zatepyakin / http://inspirit.ru/
  */
 
-import jsfeat from './jsfeat_namespace'
 import * as cache from './jsfeat_cache'
 import * as math from './jsfeat_math'
+import matrix_t from './jsfeat_struct/matrix_t'
+import {
+    BOX_BLUR_NOSCALE,
+    COLOR_BGR2GRAY,
+    COLOR_BGRA2GRAY,
+    COLOR_RGB2GRAY,
+    COLOR_RGBA2GRAY,
+    S32C2_t,
+    S32_t,
+    U8_t,
+} from './jsfeat_struct'
 
 var _resample_u8 = function(src, dst, nw, nh) {
     var xofs_count=0;
@@ -371,15 +381,15 @@ var _convol = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel
 // for raw arrays
 export const grayscale = function(src, w, h, dst, code) {
     // this is default image data representation in browser
-    if (typeof code === "undefined") { code = jsfeat.COLOR_RGBA2GRAY; }
+    if (typeof code === "undefined") { code = COLOR_RGBA2GRAY; }
     var x=0, y=0, i=0, j=0, ir=0,jr=0;
     var coeff_r = 4899, coeff_g = 9617, coeff_b = 1868, cn = 4;
 
-    if(code == jsfeat.COLOR_BGRA2GRAY || code == jsfeat.COLOR_BGR2GRAY) {
+    if(code == COLOR_BGRA2GRAY || code == COLOR_BGR2GRAY) {
         coeff_r = 1868;
         coeff_b = 4899;
     }
-    if(code == jsfeat.COLOR_RGB2GRAY || code == jsfeat.COLOR_BGR2GRAY) {
+    if(code == COLOR_RGB2GRAY || code == COLOR_BGR2GRAY) {
         cn = 3;
     }
     var cn2 = cn<<1, cn3 = (cn*3)|0;
@@ -406,7 +416,7 @@ export const resample = function(src, dst, nw, nh) {
     if (h > nh && w > nw) {
         dst.resize(nw, nh, src.channel);
         // using the fast alternative (fix point scale, 0x100 to avoid overflow)
-        if (src.type&jsfeat.U8_t && dst.type&jsfeat.U8_t && h * w / (nh * nw) < 0x100) {
+        if (src.type&U8_t && dst.type&U8_t && h * w / (nh * nw) < 0x100) {
             _resample_u8(src, dst, nw, nh);
         } else {
             _resample(src, dst, nw, nh);
@@ -420,7 +430,7 @@ export const box_blur_gray = function(src, dst, radius, options) {
     var i=0,x=0,y=0,end=0;
     var windowSize = ((radius << 1) + 1)|0;
     var radiusPlusOne = (radius + 1)|0, radiusPlus2 = (radiusPlusOne+1)|0;
-    var scale = options&jsfeat.BOX_BLUR_NOSCALE ? 1 : (1.0 / (windowSize*windowSize));
+    var scale = options&BOX_BLUR_NOSCALE ? 1 : (1.0 / (windowSize*windowSize));
 
     var tmp_buff = cache.get_buffer((w*h)<<2);
 
@@ -587,7 +597,7 @@ export const gaussian_blur = function(src, dst, kernel_size, sigma) {
     kernel_size = kernel_size == 0 ? (Math.max(1, (4.0 * sigma + 1.0 - 1e-8)) * 2 + 1)|0 : kernel_size;
     var half_kernel = kernel_size >> 1;
     var w = src.cols, h = src.rows;
-    var data_type = src.type, is_u8 = data_type&jsfeat.U8_t;
+    var data_type = src.type, is_u8 = data_type&U8_t;
 
     dst.resize(w, h, src.channel);
 
@@ -600,7 +610,7 @@ export const gaussian_blur = function(src, dst, kernel_size, sigma) {
     if(is_u8) {
         buf = buf_node.i32;
         filter = filt_node.i32;
-    } else if(data_type&jsfeat.S32_t) {
+    } else if(data_type&S32_t) {
         buf = buf_node.i32;
         filter = filt_node.f32;
     } else {
@@ -741,7 +751,7 @@ export const scharr_derivatives = function(src, dst) {
     var buf0_node = cache.get_buffer((w+2)<<2);
     var buf1_node = cache.get_buffer((w+2)<<2);
 
-    if(src.type&jsfeat.U8_t || src.type&jsfeat.S32_t) {
+    if(src.type&U8_t || src.type&S32_t) {
         trow0 = buf0_node.i32;
         trow1 = buf1_node.i32;
     } else {
@@ -810,7 +820,7 @@ export const sobel_derivatives = function(src, dst) {
     var buf0_node = cache.get_buffer((w+2)<<2);
     var buf1_node = cache.get_buffer((w+2)<<2);
 
-    if(src.type&jsfeat.U8_t || src.type&jsfeat.S32_t) {
+    if(src.type&U8_t || src.type&S32_t) {
         trow0 = buf0_node.i32;
         trow1 = buf1_node.i32;
     } else {
@@ -1018,7 +1028,7 @@ export const canny = function(src, dst, low_thresh, high_thresh) {
     var map = map_node.i32;
     var stack = stack_node.i32;
     var dxdy = dxdy_node.i32;
-    var dxdy_m = new jsfeat.matrix_t(w, h, jsfeat.S32C2_t, dxdy_node.data);
+    var dxdy_m = new matrix_t(w, h, S32C2_t, dxdy_node.data);
     var row0=1,row1=(w+2+1)|0,row2=(2*(w+2)+1)|0,map_w=(w+2)|0,map_i=(map_w+1)|0,stack_i=0;
 
     sobel_derivatives(src, dxdy_m);

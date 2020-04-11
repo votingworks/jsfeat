@@ -3,9 +3,10 @@
  *
  */
 
-import jsfeat from './jsfeat_namespace'
 import * as cache from './jsfeat_cache'
 import * as matmath from './jsfeat_mat_math'
+import matrix_t from './jsfeat_struct/matrix_t'
+import { EPSILON, FLT_MIN, C1_t, SVD_U_T, SVD_V_T } from './jsfeat_struct'
 
 var swap = function(A, i0, i1, t) {
     t = A[i0];
@@ -28,7 +29,7 @@ var hypot = function(a, b) {
 }
 
 var JacobiImpl = function(A, astep, W, V, vstep, n) {
-    var eps = jsfeat.EPSILON;
+    var eps = EPSILON;
     var i=0,j=0,k=0,m=0,l=0,idx=0,_in=0,_in2=0;
     var iters=0,max_iter=n*n*30;
     var mv=0.0,val=0.0,p=0.0,y=0.0,t=0.0,s=0.0,c=0.0,a0=0.0,b0=0.0;
@@ -181,8 +182,8 @@ var JacobiImpl = function(A, astep, W, V, vstep, n) {
 }
 
 var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
-    var eps = jsfeat.EPSILON * 2.0;
-    var minval = jsfeat.FLT_MIN;
+    var eps = EPSILON * 2.0;
+    var minval = FLT_MIN;
     var i=0,j=0,k=0,iter=0,max_iter=Math.max(m, 30);
     var Ai=0,Aj=0,Vi=0,Vj=0,changed=0;
     var c=0.0, s=0.0, t=0.0;
@@ -385,7 +386,7 @@ export const lu_solve = function(A, B) {
             }
         }
         
-        if(Math.abs(ad[k*astep+i]) < jsfeat.EPSILON) {
+        if(Math.abs(ad[k*astep+i]) < EPSILON) {
             return 0; // FAILED
         }
         
@@ -493,7 +494,7 @@ export const cholesky_solve = function(A, B) {
 export const svd_decompose = function(A, W, U, V, options) {
     if (typeof options === "undefined") { options = 0; }
     var at=0,i=0,_m=A.rows,_n=A.cols,m=_m,n=_n;
-    var dt = A.type | jsfeat.C1_t; // we only work with single channel
+    var dt = A.type | C1_t; // we only work with single channel
 
     if(m < n) {
         at = 1;
@@ -506,9 +507,9 @@ export const svd_decompose = function(A, W, U, V, options) {
     var w_buff = cache.get_buffer(n<<3);
     var v_buff = cache.get_buffer((n*n)<<3);
 
-    var a_mt = new jsfeat.matrix_t(m, m, dt, a_buff.data);
-    var w_mt = new jsfeat.matrix_t(1, n, dt, w_buff.data);
-    var v_mt = new jsfeat.matrix_t(n, n, dt, v_buff.data);
+    var a_mt = new matrix_t(m, m, dt, a_buff.data);
+    var w_mt = new matrix_t(1, n, dt, w_buff.data);
+    var v_mt = new matrix_t(n, n, dt, v_buff.data);
 
     if(at == 0) {
         // transpose
@@ -534,7 +535,7 @@ export const svd_decompose = function(A, W, U, V, options) {
     }
 
     if (at == 0) {
-        if(U && (options & jsfeat.SVD_U_T)) {
+        if(U && (options & SVD_U_T)) {
             i = m*m;
             while(--i >= 0) {
                 U.data[i] = a_mt.data[i];
@@ -543,7 +544,7 @@ export const svd_decompose = function(A, W, U, V, options) {
             matmath.transpose(U, a_mt);
         }
 
-        if(V && (options & jsfeat.SVD_V_T)) {
+        if(V && (options & SVD_V_T)) {
             i = n*n;
             while(--i >= 0) {
                 V.data[i] = v_mt.data[i];
@@ -552,7 +553,7 @@ export const svd_decompose = function(A, W, U, V, options) {
             matmath.transpose(V, v_mt);
         }
     } else {
-        if(U && (options & jsfeat.SVD_U_T)) {
+        if(U && (options & SVD_U_T)) {
             i = n*n;
             while(--i >= 0) {
                 U.data[i] = v_mt.data[i];
@@ -561,7 +562,7 @@ export const svd_decompose = function(A, W, U, V, options) {
             matmath.transpose(U, v_mt);
         }
 
-        if(V && (options & jsfeat.SVD_V_T)) {
+        if(V && (options & SVD_V_T)) {
             i = m*m;
             while(--i >= 0) {
                 V.data[i] = a_mt.data[i];
@@ -582,21 +583,21 @@ export const svd_solve = function(A, X, B) {
     var pu=0,pv=0;
     var nrows=A.rows,ncols=A.cols;
     var sum=0.0,xsum=0.0,tol=0.0;
-    var dt = A.type | jsfeat.C1_t;
+    var dt = A.type | C1_t;
 
     var u_buff = cache.get_buffer((nrows*nrows)<<3);
     var w_buff = cache.get_buffer(ncols<<3);
     var v_buff = cache.get_buffer((ncols*ncols)<<3);
 
-    var u_mt = new jsfeat.matrix_t(nrows, nrows, dt, u_buff.data);
-    var w_mt = new jsfeat.matrix_t(1, ncols, dt, w_buff.data);
-    var v_mt = new jsfeat.matrix_t(ncols, ncols, dt, v_buff.data);
+    var u_mt = new matrix_t(nrows, nrows, dt, u_buff.data);
+    var w_mt = new matrix_t(1, ncols, dt, w_buff.data);
+    var v_mt = new matrix_t(ncols, ncols, dt, v_buff.data);
 
     var bd = B.data, ud = u_mt.data, wd = w_mt.data, vd = v_mt.data;
 
     this.svd_decompose(A, w_mt, u_mt, v_mt, 0);
 
-    tol = jsfeat.EPSILON * wd[0] * ncols;
+    tol = EPSILON * wd[0] * ncols;
 
     for (; i < ncols; i++, pv += ncols) {
         xsum = 0.0;
@@ -621,21 +622,21 @@ export const svd_invert = function(Ai, A) {
     var pu=0,pv=0,pa=0;
     var nrows=A.rows,ncols=A.cols;
     var sum=0.0,tol=0.0;
-    var dt = A.type | jsfeat.C1_t;
+    var dt = A.type | C1_t;
 
     var u_buff = cache.get_buffer((nrows*nrows)<<3);
     var w_buff = cache.get_buffer(ncols<<3);
     var v_buff = cache.get_buffer((ncols*ncols)<<3);
 
-    var u_mt = new jsfeat.matrix_t(nrows, nrows, dt, u_buff.data);
-    var w_mt = new jsfeat.matrix_t(1, ncols, dt, w_buff.data);
-    var v_mt = new jsfeat.matrix_t(ncols, ncols, dt, v_buff.data);
+    var u_mt = new matrix_t(nrows, nrows, dt, u_buff.data);
+    var w_mt = new matrix_t(1, ncols, dt, w_buff.data);
+    var v_mt = new matrix_t(ncols, ncols, dt, v_buff.data);
 
     var id = Ai.data, ud = u_mt.data, wd = w_mt.data, vd = v_mt.data;
 
     this.svd_decompose(A, w_mt, u_mt, v_mt, 0);
 
-    tol = jsfeat.EPSILON * wd[0] * ncols;
+    tol = EPSILON * wd[0] * ncols;
 
     for (; i < ncols; i++, pv += ncols) {
         for (j = 0, pu = 0; j < nrows; j++, pa++) {
@@ -653,12 +654,12 @@ export const svd_invert = function(Ai, A) {
 
 export const eigenVV = function(A, vects, vals) {
     var n=A.cols,i=n*n;
-    var dt = A.type | jsfeat.C1_t;
+    var dt = A.type | C1_t;
 
     var a_buff = cache.get_buffer((n*n)<<3);
     var w_buff = cache.get_buffer(n<<3);
-    var a_mt = new jsfeat.matrix_t(n, n, dt, a_buff.data);
-    var w_mt = new jsfeat.matrix_t(1, n, dt, w_buff.data);
+    var a_mt = new matrix_t(n, n, dt, a_buff.data);
+    var w_mt = new matrix_t(1, n, dt, w_buff.data);
 
     while(--i >= 0) {
         a_mt.data[i] = A.data[i];

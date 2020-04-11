@@ -9,8 +9,10 @@
  * The original paper refers to: YEF∗ Real-Time Object Detection, Yotam Abramson and Bruno Steux
  */
 
-import jsfeat from './jsfeat_namespace'
 import * as imgproc from './jsfeat_imgproc'
+import matrix_t from './jsfeat_struct/matrix_t'
+import pyramid_t from './jsfeat_struct/pyramid_t'
+import { C1_t, U8_t } from './jsfeat_struct'
 
 var _group_func = function(r1, r2) {
     var distance = (r1.width * 0.25 + 0.5)|0;
@@ -23,7 +25,7 @@ var _group_func = function(r1, r2) {
             (r2.width * 1.5 + 0.5)|0 >= r1.width;
 }
 
-var img_pyr = new jsfeat.pyramid_t(1);
+var img_pyr = new pyramid_t(1);
 
 export let interval = 4;
 export let scale = 1.1486;
@@ -56,7 +58,7 @@ export const build_pyramid = function(src, min_width, min_height, newInterval) {
     var i=0,nw=0,nh=0;
     var new_pyr=false;
     var src0=src,src1=src;
-    var data_type = jsfeat.U8_t | jsfeat.C1_t;
+    var data_type = U8_t | C1_t;
 
     interval = newInterval;
     scale = Math.pow(2, 1 / (interval + 1));
@@ -76,7 +78,7 @@ export const build_pyramid = function(src, min_width, min_height, newInterval) {
         nh = (sh / Math.pow(scale, i))|0;
         src0 = img_pyr.data[i<<2];
         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-            img_pyr.data[i<<2] = new jsfeat.matrix_t(nw, nh, data_type);
+            img_pyr.data[i<<2] = new matrix_t(nw, nh, data_type);
             src0 = img_pyr.data[i<<2];
         }
         imgproc.resample(src, src0, nw, nh);
@@ -87,7 +89,7 @@ export const build_pyramid = function(src, min_width, min_height, newInterval) {
         nw = src1.cols >> 1;
         nh = src1.rows >> 1;
         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-            img_pyr.data[i<<2] = new jsfeat.matrix_t(nw, nh, data_type);
+            img_pyr.data[i<<2] = new matrix_t(nw, nh, data_type);
             src0 = img_pyr.data[i<<2];
         }
         imgproc.pyrdown(src1, src0);
@@ -98,21 +100,21 @@ export const build_pyramid = function(src, min_width, min_height, newInterval) {
         nh = src1.rows >> 1;
         src0 = img_pyr.data[(i<<2)+1];
         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-            img_pyr.data[(i<<2)+1] = new jsfeat.matrix_t(nw, nh, data_type);
+            img_pyr.data[(i<<2)+1] = new matrix_t(nw, nh, data_type);
             src0 = img_pyr.data[(i<<2)+1];
         }
         imgproc.pyrdown(src1, src0, 1, 0);
         //
         src0 = img_pyr.data[(i<<2)+2];
         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-            img_pyr.data[(i<<2)+2] = new jsfeat.matrix_t(nw, nh, data_type);
+            img_pyr.data[(i<<2)+2] = new matrix_t(nw, nh, data_type);
             src0 = img_pyr.data[(i<<2)+2];
         }
         imgproc.pyrdown(src1, src0, 0, 1);
         //
         src0 = img_pyr.data[(i<<2)+3];
         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-            img_pyr.data[(i<<2)+3] = new jsfeat.matrix_t(nw, nh, data_type);
+            img_pyr.data[(i<<2)+3] = new matrix_t(nw, nh, data_type);
             src0 = img_pyr.data[(i<<2)+3];
         }
         imgproc.pyrdown(src1, src0, 1, 1);

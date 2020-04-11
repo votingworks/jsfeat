@@ -2,8 +2,8 @@
  * @author Eugene Zatepyakin / http://inspirit.ru/
  */
 
-import jsfeat from './jsfeat_namespace'
 import * as cache from './jsfeat_cache'
+import { U8_t } from './jsfeat_struct'
 
 var qsort_stack = new Int32Array(48*2);
 
@@ -48,7 +48,7 @@ export const get_gaussian_kernel = function(size, sigma, kernel, data_type) {
         }
     }
 
-    if(data_type & jsfeat.U8_t) {
+    if(data_type & U8_t) {
         // int based kernel
         sum = 256.0/sum;
         for (i = 0; i < size; ++i) {

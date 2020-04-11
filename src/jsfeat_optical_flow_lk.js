@@ -4,9 +4,10 @@
  * this code is a rewrite from OpenCV's Lucas-Kanade optical flow implementation
  */
 
-import jsfeat from './jsfeat_namespace'
 import * as cache from './jsfeat_cache'
 import { scharr_derivatives as scharr_deriv } from './jsfeat_imgproc'
+import matrix_t from './jsfeat_struct/matrix_t'
+import { S32C2_t } from './jsfeat_struct'
 
 export const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_size, max_iter, status, eps, min_eigen_threshold) {
     if (typeof max_iter === "undefined") { max_iter = 30; }
@@ -25,7 +26,7 @@ export const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_s
     var deriv_iwin_node = cache.get_buffer(win_area2<<2);
     var deriv_lev_node = cache.get_buffer((h0*(w0<<1))<<2);
 
-    var deriv_m = new jsfeat.matrix_t(w0, h0, jsfeat.S32C2_t, deriv_lev_node.data);
+    var deriv_m = new matrix_t(w0, h0, S32C2_t, deriv_lev_node.data);
 
     var iwin_buf = iwin_node.i32;
     var deriv_iwin = deriv_iwin_node.i32;

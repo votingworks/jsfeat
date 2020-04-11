@@ -2,7 +2,7 @@
  * @author Eugene Zatepyakin / http://inspirit.ru/
  */
 
-import jsfeat from './jsfeat_namespace'
+import data_t from './jsfeat_struct/data_t'
 
 // very primitive array cache, still need testing if it helps
 // of course V8 has its own powerful cache sys but i'm not sure
@@ -11,7 +11,7 @@ import jsfeat from './jsfeat_namespace'
 var _pool_node_t = (function () {
     function _pool_node_t(size_in_bytes) {
         this.next = null;
-        this.data = new jsfeat.data_t(size_in_bytes);
+        this.data = new data_t(size_in_bytes);
         this.size = this.data.size;
         this.buffer = this.data.buffer;
         this.u8 = this.data.u8;
@@ -21,7 +21,7 @@ var _pool_node_t = (function () {
     }
     _pool_node_t.prototype.resize = function(size_in_bytes) {
         delete this.data;
-        this.data = new jsfeat.data_t(size_in_bytes);
+        this.data = new data_t(size_in_bytes);
         this.size = this.data.size;
         this.buffer = this.data.buffer;
         this.u8 = this.data.u8;
