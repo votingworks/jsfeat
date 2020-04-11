@@ -14,7 +14,11 @@ import "./jsfeat_yape06";
 import "./jsfeat_yape";
 import "./jsfeat_orb";
 import "./jsfeat_optical_flow_lk";
-import "./jsfeat_haar";
+import * as haar from "./jsfeat_haar";
 import "./jsfeat_bbf";
 
-export { default } from "./jsfeat_namespace";
+import jsfeat from "./jsfeat_namespace";
+
+jsfeat.haar = haar;
+
+export default jsfeat;
