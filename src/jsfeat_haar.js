@@ -5,6 +5,8 @@
  * @author Martin Tschirsich / http://www.tu-darmstadt.de/~m_t
  */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //

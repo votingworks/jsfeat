@@ -3,6 +3,8 @@
  *
  */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //

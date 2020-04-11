@@ -1,8 +1,17 @@
 {
-    "name" : "jsfeat",
-    "version" : "0.0.8",
-    "description" : "JavaScript Computer Vision library",
-    "author" : "Eugene Zatepyakin (http://www.inspirit.ru/)",
-    "files" : "build/jsfeat.js",
-    "main" : "build/jsfeat"
+    "name": "jsfeat",
+    "version": "0.0.8",
+    "description": "JavaScript Computer Vision library",
+    "author": "Eugene Zatepyakin (http://www.inspirit.ru/)",
+    "main": "build/jsfeat",
+    "files": [
+        "build/jsfeat.js"
+    ],
+    "scripts": {
+        "build": "rollup -c"
+    },
+    "devDependencies": {
+        "rollup": "^2.6.0",
+        "rollup-plugin-terser": "^5.3.0"
+    }
 }

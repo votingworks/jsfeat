@@ -5,6 +5,8 @@
  * @authors Ethan Rublee, Vincent Rabaud, Gary Bradski
  */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //

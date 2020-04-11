@@ -2,6 +2,8 @@
  * @author Eugene Zatepyakin / http://inspirit.ru/
  */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //

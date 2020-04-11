@@ -9,6 +9,8 @@
  * The original paper refers to: YEF∗ Real-Time Object Detection, Yotam Abramson and Bruno Steux
  */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //

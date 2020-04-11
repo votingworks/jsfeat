@@ -4,6 +4,8 @@
  * this code is a rewrite from OpenCV's Lucas-Kanade optical flow implementation
  */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //

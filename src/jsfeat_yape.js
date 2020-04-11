@@ -5,6 +5,8 @@
  * Ecole Polytechnique Federale de Lausanne (EPFL), Switzerland.
  */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //

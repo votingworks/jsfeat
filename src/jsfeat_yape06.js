@@ -6,6 +6,8 @@
  * @author Vincent Lepetit (http://cvlab.epfl.ch/~lepetit)
  */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //

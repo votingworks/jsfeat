@@ -12,6 +12,8 @@ The references are:
    E. Rosten, R. Porter and T. Drummond, PAMI, 2009  
 */
 
+import jsfeat from './jsfeat_namespace'
+
 (function(global) {
     "use strict";
     //
