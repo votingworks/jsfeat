@@ -4,6 +4,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as matmath from './jsfeat_mat_math'
 
 (function(global) {
     "use strict";
@@ -101,8 +102,8 @@ import jsfeat from './jsfeat_namespace'
 			        bd[(i<<1)+1] = t1d[3]*pt1.x + t1d[4]*pt1.y + t1d[5];
 			    }
 
-			    jsfeat.matmath.multiply_AtA(AtA, a_mt);
-			    jsfeat.matmath.multiply_AtB(AtB, a_mt, b_mt);
+			    matmath.multiply_AtA(AtA, a_mt);
+			    matmath.multiply_AtB(AtB, a_mt, b_mt);
 
 			    jsfeat.linalg.lu_solve(AtA, AtB);
 
@@ -111,9 +112,9 @@ import jsfeat from './jsfeat_namespace'
 			    md[6] = 0.0, md[7] = 0.0, md[8] = 1.0; // fill last row
 
 			    // denormalize
-			    jsfeat.matmath.invert_3x3(T1, T1);
-			    jsfeat.matmath.multiply_3x3(model, T1, model);
-			    jsfeat.matmath.multiply_3x3(model, model, T0);
+			    matmath.invert_3x3(T1, T1);
+			    matmath.multiply_3x3(model, T1, model);
+			    matmath.multiply_3x3(model, model, T0);
 
 			    // free buffer
 			    jsfeat.cache.put_buffer(a_buff);
@@ -266,8 +267,8 @@ import jsfeat from './jsfeat_namespace'
 			    md[6]=evd[78], md[7]=evd[79], md[8]=evd[80];
 
 				// denormalize
-			    jsfeat.matmath.multiply_3x3(model, T1, model);
-			    jsfeat.matmath.multiply_3x3(model, model, T0);
+			    matmath.multiply_3x3(model, T1, model);
+			    matmath.multiply_3x3(model, model, T0);
 
 			    // set bottom right to 1.0
 			    x = 1.0/md[8];
@@ -314,8 +315,8 @@ import jsfeat from './jsfeat_namespace'
 			        var B21=tp1.x, B22=tp1.y, B23=1.0;
 			        var B31=tp2.x, B32=tp2.y, B33=1.0;
 
-			        var detA = jsfeat.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-					var detB = jsfeat.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+			        var detA = matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+					var detB = matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
 
 					if(detA*detB < 0) negative++;
 
@@ -328,8 +329,8 @@ import jsfeat from './jsfeat_namespace'
 			        B21=tp2.x, B22=tp2.y;
 			        B31=tp3.x, B32=tp3.y;
 
-			        detA = jsfeat.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-					detB = jsfeat.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+			        detA = matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+					detB = matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
 
 					if(detA*detB < 0) negative++;
 
@@ -342,8 +343,8 @@ import jsfeat from './jsfeat_namespace'
 			        B21=tp2.x, B22=tp2.y;
 			        B31=tp3.x, B32=tp3.y;
 
-			        detA = jsfeat.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-					detB = jsfeat.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+			        detA = matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+					detB = matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
 
 					if(detA*detB < 0) negative++;
 
@@ -356,8 +357,8 @@ import jsfeat from './jsfeat_namespace'
 			        B21=tp1.x, B22=tp1.y;
 			        B31=tp3.x, B32=tp3.y;
 
-			        detA = jsfeat.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-					detB = jsfeat.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+			        detA = matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+					detB = matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
 
 					if(detA*detB < 0) negative++;
 

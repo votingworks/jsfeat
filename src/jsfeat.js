@@ -5,7 +5,7 @@
 import "./jsfeat_struct";
 import "./jsfeat_cache";
 import "./jsfeat_math";
-import "./jsfeat_mat_math";
+import * as matmath from "./jsfeat_mat_math";
 import "./jsfeat_linalg";
 import "./jsfeat_motion_estimator";
 import * as imgproc from "./jsfeat_imgproc";
@@ -19,6 +19,7 @@ import "./jsfeat_bbf";
 
 import jsfeat from "./jsfeat_namespace";
 
+jsfeat.matmath = matmath;
 jsfeat.imgproc = imgproc;
 jsfeat.fast_corners = fast_corners;
 jsfeat.optical_flow_lk = optical_flow_lk;

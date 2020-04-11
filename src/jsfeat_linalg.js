@@ -4,6 +4,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as matmath from './jsfeat_mat_math'
 
 (function(global) {
     "use strict";
@@ -517,7 +518,7 @@ import jsfeat from './jsfeat_namespace'
 
                 if(at == 0) {
                     // transpose
-                    jsfeat.matmath.transpose(a_mt, A);
+                    matmath.transpose(a_mt, A);
                 } else {
                     for(i = 0; i < _n*_m; i++) {
                         a_mt.data[i] = A.data[i];
@@ -545,7 +546,7 @@ import jsfeat from './jsfeat_namespace'
                             U.data[i] = a_mt.data[i];
                         }
                     } else if(U) {
-                        jsfeat.matmath.transpose(U, a_mt);
+                        matmath.transpose(U, a_mt);
                     }
 
                     if(V && (options & jsfeat.SVD_V_T)) {
@@ -554,7 +555,7 @@ import jsfeat from './jsfeat_namespace'
                             V.data[i] = v_mt.data[i];
                         }
                     } else if(V) {
-                        jsfeat.matmath.transpose(V, v_mt);
+                        matmath.transpose(V, v_mt);
                     }
                 } else {
                     if(U && (options & jsfeat.SVD_U_T)) {
@@ -563,7 +564,7 @@ import jsfeat from './jsfeat_namespace'
                             U.data[i] = v_mt.data[i];
                         }
                     } else if(U) {
-                        jsfeat.matmath.transpose(U, v_mt);
+                        matmath.transpose(U, v_mt);
                     }
 
                     if(V && (options & jsfeat.SVD_V_T)) {
@@ -572,7 +573,7 @@ import jsfeat from './jsfeat_namespace'
                             V.data[i] = a_mt.data[i];
                         }
                     } else if(V) {
-                        jsfeat.matmath.transpose(V, a_mt);
+                        matmath.transpose(V, a_mt);
                     }
                 }
 
