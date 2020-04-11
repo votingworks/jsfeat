@@ -15,7 +15,7 @@ import "./jsfeat_yape";
 import "./jsfeat_orb";
 import * as optical_flow_lk from "./jsfeat_optical_flow_lk";
 import * as haar from "./jsfeat_haar";
-import "./jsfeat_bbf";
+import * as bbf from "./jsfeat_bbf";
 
 import jsfeat from "./jsfeat_namespace";
 
@@ -25,5 +25,6 @@ jsfeat.imgproc = imgproc;
 jsfeat.fast_corners = fast_corners;
 jsfeat.optical_flow_lk = optical_flow_lk;
 jsfeat.haar = haar;
+jsfeat.bbf = bbf;
 
 export default jsfeat;
