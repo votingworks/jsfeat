@@ -5,6 +5,7 @@
 
 import jsfeat from './jsfeat_namespace'
 import * as matmath from './jsfeat_mat_math'
+import * as linalg from './jsfeat_linalg'
 
 (function(global) {
     "use strict";
@@ -105,7 +106,7 @@ import * as matmath from './jsfeat_mat_math'
 			    matmath.multiply_AtA(AtA, a_mt);
 			    matmath.multiply_AtB(AtB, a_mt, b_mt);
 
-			    jsfeat.linalg.lu_solve(AtA, AtB);
+			    linalg.lu_solve(AtA, AtB);
 
 			    md[0] = AtB.data[0], md[1]=AtB.data[1], md[2]=AtB.data[2];
 			    md[3] = AtB.data[3], md[4]=AtB.data[4], md[5]=AtB.data[5];
@@ -260,7 +261,7 @@ import * as matmath from './jsfeat_mat_math'
 			            LtL[i*9+j] = LtL[j*9+i];
 			    }
 
-				jsfeat.linalg.eigenVV(mLtL, Evec);
+				linalg.eigenVV(mLtL, Evec);
 
 				md[0]=evd[72], md[1]=evd[73], md[2]=evd[74];
 			    md[3]=evd[75], md[4]=evd[76], md[5]=evd[77];
