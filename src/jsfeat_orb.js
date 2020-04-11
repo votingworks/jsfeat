@@ -6,6 +6,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as imgproc from './jsfeat_imgproc'
 
 (function(global) {
     "use strict";
@@ -282,7 +283,7 @@ import jsfeat from './jsfeat_namespace'
 	        H.data[0] = cosine, H.data[1] = -sine,    H.data[2] = (-cosine + sine  ) * psize*0.5 + px,
 	        H.data[3] = sine,   H.data[4] =  cosine,  H.data[5] = (-sine   - cosine) * psize*0.5 + py;
 
-	        jsfeat.imgproc.warp_affine(src, dst, H, 128);
+	        imgproc.warp_affine(src, dst, H, 128);
 	    }
 
     	return {

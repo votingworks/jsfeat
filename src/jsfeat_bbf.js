@@ -10,6 +10,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as imgproc from './jsfeat_imgproc'
 
 (function(global) {
     "use strict";
@@ -85,7 +86,7 @@ import jsfeat from './jsfeat_namespace'
                         img_pyr.data[i<<2] = new jsfeat.matrix_t(nw, nh, data_type);
                         src0 = img_pyr.data[i<<2];
                     }
-                    jsfeat.imgproc.resample(src, src0, nw, nh);
+                    imgproc.resample(src, src0, nw, nh);
                 }
                 for (i = this.next; i < this.scale_to + this.next * 2; ++i) {
                     src1 = img_pyr.data[(i << 2) - (this.next << 2)];
@@ -96,7 +97,7 @@ import jsfeat from './jsfeat_namespace'
                         img_pyr.data[i<<2] = new jsfeat.matrix_t(nw, nh, data_type);
                         src0 = img_pyr.data[i<<2];
                     }
-                    jsfeat.imgproc.pyrdown(src1, src0);
+                    imgproc.pyrdown(src1, src0);
                 }
                 for (i = this.next * 2; i < this.scale_to + this.next * 2; ++i) {
                     src1 = img_pyr.data[(i << 2) - (this.next << 2)];
@@ -107,21 +108,21 @@ import jsfeat from './jsfeat_namespace'
                         img_pyr.data[(i<<2)+1] = new jsfeat.matrix_t(nw, nh, data_type);
                         src0 = img_pyr.data[(i<<2)+1];
                     }
-                    jsfeat.imgproc.pyrdown(src1, src0, 1, 0);
+                    imgproc.pyrdown(src1, src0, 1, 0);
                     //
                     src0 = img_pyr.data[(i<<2)+2];
                     if(new_pyr || nw != src0.cols || nh != src0.rows) {
                         img_pyr.data[(i<<2)+2] = new jsfeat.matrix_t(nw, nh, data_type);
                         src0 = img_pyr.data[(i<<2)+2];
                     }
-                    jsfeat.imgproc.pyrdown(src1, src0, 0, 1);
+                    imgproc.pyrdown(src1, src0, 0, 1);
                     //
                     src0 = img_pyr.data[(i<<2)+3];
                     if(new_pyr || nw != src0.cols || nh != src0.rows) {
                         img_pyr.data[(i<<2)+3] = new jsfeat.matrix_t(nw, nh, data_type);
                         src0 = img_pyr.data[(i<<2)+3];
                     }
-                    jsfeat.imgproc.pyrdown(src1, src0, 1, 1);
+                    imgproc.pyrdown(src1, src0, 1, 1);
                 }
                 return img_pyr;
             },

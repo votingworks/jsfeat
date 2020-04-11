@@ -5,6 +5,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as imgproc from './jsfeat_imgproc'
 
 (function(global) {
     "use strict";
@@ -12,7 +13,7 @@ import jsfeat from './jsfeat_namespace'
     var optical_flow_lk = (function() {
 
         // short link to shar deriv
-        var scharr_deriv = jsfeat.imgproc.scharr_derivatives;
+        var scharr_deriv = imgproc.scharr_derivatives;
 
         return {
             track: function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_size, max_iter, status, eps, min_eigen_threshold) {

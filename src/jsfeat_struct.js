@@ -3,6 +3,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as imgproc from './jsfeat_imgproc'
 
 (function(global) {
     "use strict";
@@ -135,7 +136,7 @@ import jsfeat from './jsfeat_namespace'
         function pyramid_t(levels) {
             this.levels = levels|0;
             this.data = new Array(levels);
-            this.pyrdown = jsfeat.imgproc.pyrdown;
+            this.pyrdown = imgproc.pyrdown;
         }
 
         pyramid_t.prototype.allocate = function(start_w, start_h, data_type) {
