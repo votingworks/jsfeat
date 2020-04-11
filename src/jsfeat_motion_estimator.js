@@ -6,6 +6,7 @@
 import jsfeat from './jsfeat_namespace'
 import * as matmath from './jsfeat_mat_math'
 import * as linalg from './jsfeat_linalg'
+import * as math from './jsfeat_math'
 
 (function(global) {
     "use strict";
@@ -608,7 +609,7 @@ import * as linalg from './jsfeat_linalg'
 			        // TODO handle multimodel output
 
 			        kernel.error(from, to, M, err, count);
-			        median = jsfeat.math.median(err, 0, count-1);
+			        median = math.median(err, 0, count-1);
 
 			        if(median < min_median) {
 			            min_median = median;

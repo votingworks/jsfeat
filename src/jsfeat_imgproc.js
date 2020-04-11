@@ -3,6 +3,7 @@
  */
 
 import jsfeat from './jsfeat_namespace'
+import * as math from './jsfeat_math'
 
 var _resample_u8 = function(src, dst, nw, nh) {
     var xofs_count=0;
@@ -606,7 +607,7 @@ export const gaussian_blur = function(src, dst, kernel_size, sigma) {
         filter = filt_node.f32;
     }
 
-    jsfeat.math.get_gaussian_kernel(kernel_size, sigma, filter, data_type);
+    math.get_gaussian_kernel(kernel_size, sigma, filter, data_type);
 
     if(is_u8) {
         _convol_u8(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel);

@@ -4,7 +4,7 @@
 
 import "./jsfeat_struct";
 import "./jsfeat_cache";
-import "./jsfeat_math";
+import * as math from "./jsfeat_math";
 import * as matmath from "./jsfeat_mat_math";
 import * as linalg from "./jsfeat_linalg";
 import "./jsfeat_motion_estimator";
@@ -19,6 +19,7 @@ import * as bbf from "./jsfeat_bbf";
 
 import jsfeat from "./jsfeat_namespace";
 
+jsfeat.math = math;
 jsfeat.matmath = matmath;
 jsfeat.linalg = linalg;
 jsfeat.imgproc = imgproc;
