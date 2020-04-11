@@ -4,7 +4,7 @@
     (global = global || self, global.jsfeat = factory());
 }(this, (function () { 'use strict';
 
-    var jsfeat = { REVISION: "ALPHA" };
+    var jsfeat$1 = { REVISION: "ALPHA" };
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -140,7 +140,7 @@
             function pyramid_t(levels) {
                 this.levels = levels|0;
                 this.data = new Array(levels);
-                this.pyrdown = jsfeat.imgproc.pyrdown;
+                this.pyrdown = jsfeat$1.imgproc.pyrdown;
             }
 
             pyramid_t.prototype.allocate = function(start_w, start_h, data_type) {
@@ -236,7 +236,7 @@
         global.pyramid_t = pyramid_t;
         global.keypoint_t = keypoint_t;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -254,7 +254,7 @@
             var _pool_node_t = (function () {
                 function _pool_node_t(size_in_bytes) {
                     this.next = null;
-                    this.data = new jsfeat.data_t(size_in_bytes);
+                    this.data = new jsfeat$1.data_t(size_in_bytes);
                     this.size = this.data.size;
                     this.buffer = this.data.buffer;
                     this.u8 = this.data.u8;
@@ -264,7 +264,7 @@
                 }
                 _pool_node_t.prototype.resize = function(size_in_bytes) {
                     delete this.data;
-                    this.data = new jsfeat.data_t(size_in_bytes);
+                    this.data = new jsfeat$1.data_t(size_in_bytes);
                     this.size = this.data.size;
                     this.buffer = this.data.buffer;
                     this.u8 = this.data.u8;
@@ -310,7 +310,7 @@
         // if having cache sys really helps we can add auto extending sys
         cache.allocate(30, 640*4);
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -327,7 +327,7 @@
                 get_gaussian_kernel: function(size, sigma, kernel, data_type) {
                     var i=0,x=0.0,t=0.0,sigma_x=0.0,scale_2x=0.0;
                     var sum = 0.0;
-                    var kern_node = jsfeat.cache.get_buffer(size<<2);
+                    var kern_node = jsfeat$1.cache.get_buffer(size<<2);
                     var _kernel = kern_node.f32;//new Float32Array(size);
 
                     if((size&1) == 1 && size <= 7 && sigma <= 0) {
@@ -365,7 +365,7 @@
                         }
                     }
 
-                    if(data_type & jsfeat.U8_t) {
+                    if(data_type & jsfeat$1.U8_t) {
                         // int based kernel
                         sum = 256.0/sum;
                         for (i = 0; i < size; ++i) {
@@ -379,7 +379,7 @@
                         }
                     }
 
-                    jsfeat.cache.put_buffer(kern_node);
+                    jsfeat$1.cache.put_buffer(kern_node);
                 },
 
                 // model is 3x3 matrix_t
@@ -724,7 +724,7 @@
 
         global.math = math;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -957,7 +957,7 @@
 
         global.matmath = matmath;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -990,13 +990,13 @@
             };
 
             var JacobiImpl = function(A, astep, W, V, vstep, n) {
-                var eps = jsfeat.EPSILON;
+                var eps = jsfeat$1.EPSILON;
                 var i=0,j=0,k=0,m=0,l=0,idx=0,_in=0,_in2=0;
                 var iters=0,max_iter=n*n*30;
                 var mv=0.0,val=0.0,p=0.0,y=0.0,t=0.0,s=0.0,c=0.0,a0=0.0,b0=0.0;
 
-                var indR_buff = jsfeat.cache.get_buffer(n<<2);
-                var indC_buff = jsfeat.cache.get_buffer(n<<2);
+                var indR_buff = jsfeat$1.cache.get_buffer(n<<2);
+                var indC_buff = jsfeat$1.cache.get_buffer(n<<2);
                 var indR = indR_buff.i32;
                 var indC = indC_buff.i32;
 
@@ -1138,13 +1138,13 @@
                 }
 
 
-                jsfeat.cache.put_buffer(indR_buff);
-                jsfeat.cache.put_buffer(indC_buff);
+                jsfeat$1.cache.put_buffer(indR_buff);
+                jsfeat$1.cache.put_buffer(indC_buff);
             };
 
             var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
-                var eps = jsfeat.EPSILON * 2.0;
-                var minval = jsfeat.FLT_MIN;
+                var eps = jsfeat$1.EPSILON * 2.0;
+                var minval = jsfeat$1.FLT_MIN;
                 var i=0,j=0,k=0,iter=0,max_iter=Math.max(m, 30);
                 var Ai=0,Aj=0,Vi=0,Vj=0,changed=0;
                 var c=0.0, s=0.0, t=0.0;
@@ -1152,7 +1152,7 @@
                 var seed = 0x1234;
                 var val=0.0,val0=0.0,asum=0.0;
 
-                var W_buff = jsfeat.cache.get_buffer(n<<3);
+                var W_buff = jsfeat$1.cache.get_buffer(n<<3);
                 var W = W_buff.f64;
                 
                 for(; i < n; i++) {
@@ -1280,7 +1280,7 @@
                 }
                 
                 if(!Vt) {
-                    jsfeat.cache.put_buffer(W_buff);
+                    jsfeat$1.cache.put_buffer(W_buff);
                     return;
                 }
 
@@ -1330,7 +1330,7 @@
                     }
                 }
 
-                jsfeat.cache.put_buffer(W_buff);
+                jsfeat$1.cache.put_buffer(W_buff);
             };
             
             return {
@@ -1348,7 +1348,7 @@
                             }
                         }
                         
-                        if(Math.abs(ad[k*astep+i]) < jsfeat.EPSILON) {
+                        if(Math.abs(ad[k*astep+i]) < jsfeat$1.EPSILON) {
                             return 0; // FAILED
                         }
                         
@@ -1454,7 +1454,7 @@
 
                 svd_decompose: function(A, W, U, V, options) {
                     if (typeof options === "undefined") { options = 0; }                var at=0,i=0,_m=A.rows,_n=A.cols,m=_m,n=_n;
-                    var dt = A.type | jsfeat.C1_t; // we only work with single channel
+                    var dt = A.type | jsfeat$1.C1_t; // we only work with single channel
 
                     if(m < n) {
                         at = 1;
@@ -1463,17 +1463,17 @@
                         n = i;
                     }
 
-                    var a_buff = jsfeat.cache.get_buffer((m*m)<<3);
-                    var w_buff = jsfeat.cache.get_buffer(n<<3);
-                    var v_buff = jsfeat.cache.get_buffer((n*n)<<3);
+                    var a_buff = jsfeat$1.cache.get_buffer((m*m)<<3);
+                    var w_buff = jsfeat$1.cache.get_buffer(n<<3);
+                    var v_buff = jsfeat$1.cache.get_buffer((n*n)<<3);
 
-                    var a_mt = new jsfeat.matrix_t(m, m, dt, a_buff.data);
-                    var w_mt = new jsfeat.matrix_t(1, n, dt, w_buff.data);
-                    var v_mt = new jsfeat.matrix_t(n, n, dt, v_buff.data);
+                    var a_mt = new jsfeat$1.matrix_t(m, m, dt, a_buff.data);
+                    var w_mt = new jsfeat$1.matrix_t(1, n, dt, w_buff.data);
+                    var v_mt = new jsfeat$1.matrix_t(n, n, dt, v_buff.data);
 
                     if(at == 0) {
                         // transpose
-                        jsfeat.matmath.transpose(a_mt, A);
+                        jsfeat$1.matmath.transpose(a_mt, A);
                     } else {
                         for(i = 0; i < _n*_m; i++) {
                             a_mt.data[i] = A.data[i];
@@ -1495,46 +1495,46 @@
                     }
 
                     if (at == 0) {
-                        if(U && (options & jsfeat.SVD_U_T)) {
+                        if(U && (options & jsfeat$1.SVD_U_T)) {
                             i = m*m;
                             while(--i >= 0) {
                                 U.data[i] = a_mt.data[i];
                             }
                         } else if(U) {
-                            jsfeat.matmath.transpose(U, a_mt);
+                            jsfeat$1.matmath.transpose(U, a_mt);
                         }
 
-                        if(V && (options & jsfeat.SVD_V_T)) {
+                        if(V && (options & jsfeat$1.SVD_V_T)) {
                             i = n*n;
                             while(--i >= 0) {
                                 V.data[i] = v_mt.data[i];
                             }
                         } else if(V) {
-                            jsfeat.matmath.transpose(V, v_mt);
+                            jsfeat$1.matmath.transpose(V, v_mt);
                         }
                     } else {
-                        if(U && (options & jsfeat.SVD_U_T)) {
+                        if(U && (options & jsfeat$1.SVD_U_T)) {
                             i = n*n;
                             while(--i >= 0) {
                                 U.data[i] = v_mt.data[i];
                             }
                         } else if(U) {
-                            jsfeat.matmath.transpose(U, v_mt);
+                            jsfeat$1.matmath.transpose(U, v_mt);
                         }
 
-                        if(V && (options & jsfeat.SVD_V_T)) {
+                        if(V && (options & jsfeat$1.SVD_V_T)) {
                             i = m*m;
                             while(--i >= 0) {
                                 V.data[i] = a_mt.data[i];
                             }
                         } else if(V) {
-                            jsfeat.matmath.transpose(V, a_mt);
+                            jsfeat$1.matmath.transpose(V, a_mt);
                         }
                     }
 
-                    jsfeat.cache.put_buffer(a_buff);
-                    jsfeat.cache.put_buffer(w_buff);
-                    jsfeat.cache.put_buffer(v_buff);
+                    jsfeat$1.cache.put_buffer(a_buff);
+                    jsfeat$1.cache.put_buffer(w_buff);
+                    jsfeat$1.cache.put_buffer(v_buff);
 
                 },
 
@@ -1543,21 +1543,21 @@
                     var pu=0,pv=0;
                     var nrows=A.rows,ncols=A.cols;
                     var sum=0.0,xsum=0.0,tol=0.0;
-                    var dt = A.type | jsfeat.C1_t;
+                    var dt = A.type | jsfeat$1.C1_t;
 
-                    var u_buff = jsfeat.cache.get_buffer((nrows*nrows)<<3);
-                    var w_buff = jsfeat.cache.get_buffer(ncols<<3);
-                    var v_buff = jsfeat.cache.get_buffer((ncols*ncols)<<3);
+                    var u_buff = jsfeat$1.cache.get_buffer((nrows*nrows)<<3);
+                    var w_buff = jsfeat$1.cache.get_buffer(ncols<<3);
+                    var v_buff = jsfeat$1.cache.get_buffer((ncols*ncols)<<3);
 
-                    var u_mt = new jsfeat.matrix_t(nrows, nrows, dt, u_buff.data);
-                    var w_mt = new jsfeat.matrix_t(1, ncols, dt, w_buff.data);
-                    var v_mt = new jsfeat.matrix_t(ncols, ncols, dt, v_buff.data);
+                    var u_mt = new jsfeat$1.matrix_t(nrows, nrows, dt, u_buff.data);
+                    var w_mt = new jsfeat$1.matrix_t(1, ncols, dt, w_buff.data);
+                    var v_mt = new jsfeat$1.matrix_t(ncols, ncols, dt, v_buff.data);
 
                     var bd = B.data, ud = u_mt.data, wd = w_mt.data, vd = v_mt.data;
 
                     this.svd_decompose(A, w_mt, u_mt, v_mt, 0);
 
-                    tol = jsfeat.EPSILON * wd[0] * ncols;
+                    tol = jsfeat$1.EPSILON * wd[0] * ncols;
 
                     for (; i < ncols; i++, pv += ncols) {
                         xsum = 0.0;
@@ -1572,9 +1572,9 @@
                         X.data[i] = xsum;
                     }
 
-                    jsfeat.cache.put_buffer(u_buff);
-                    jsfeat.cache.put_buffer(w_buff);
-                    jsfeat.cache.put_buffer(v_buff);
+                    jsfeat$1.cache.put_buffer(u_buff);
+                    jsfeat$1.cache.put_buffer(w_buff);
+                    jsfeat$1.cache.put_buffer(v_buff);
                 },
 
                 svd_invert: function(Ai, A) {
@@ -1582,21 +1582,21 @@
                     var pu=0,pv=0,pa=0;
                     var nrows=A.rows,ncols=A.cols;
                     var sum=0.0,tol=0.0;
-                    var dt = A.type | jsfeat.C1_t;
+                    var dt = A.type | jsfeat$1.C1_t;
 
-                    var u_buff = jsfeat.cache.get_buffer((nrows*nrows)<<3);
-                    var w_buff = jsfeat.cache.get_buffer(ncols<<3);
-                    var v_buff = jsfeat.cache.get_buffer((ncols*ncols)<<3);
+                    var u_buff = jsfeat$1.cache.get_buffer((nrows*nrows)<<3);
+                    var w_buff = jsfeat$1.cache.get_buffer(ncols<<3);
+                    var v_buff = jsfeat$1.cache.get_buffer((ncols*ncols)<<3);
 
-                    var u_mt = new jsfeat.matrix_t(nrows, nrows, dt, u_buff.data);
-                    var w_mt = new jsfeat.matrix_t(1, ncols, dt, w_buff.data);
-                    var v_mt = new jsfeat.matrix_t(ncols, ncols, dt, v_buff.data);
+                    var u_mt = new jsfeat$1.matrix_t(nrows, nrows, dt, u_buff.data);
+                    var w_mt = new jsfeat$1.matrix_t(1, ncols, dt, w_buff.data);
+                    var v_mt = new jsfeat$1.matrix_t(ncols, ncols, dt, v_buff.data);
 
                     var id = Ai.data, ud = u_mt.data, wd = w_mt.data, vd = v_mt.data;
 
                     this.svd_decompose(A, w_mt, u_mt, v_mt, 0);
 
-                    tol = jsfeat.EPSILON * wd[0] * ncols;
+                    tol = jsfeat$1.EPSILON * wd[0] * ncols;
 
                     for (; i < ncols; i++, pv += ncols) {
                         for (j = 0, pu = 0; j < nrows; j++, pa++) {
@@ -1607,19 +1607,19 @@
                         }
                     }
 
-                    jsfeat.cache.put_buffer(u_buff);
-                    jsfeat.cache.put_buffer(w_buff);
-                    jsfeat.cache.put_buffer(v_buff);
+                    jsfeat$1.cache.put_buffer(u_buff);
+                    jsfeat$1.cache.put_buffer(w_buff);
+                    jsfeat$1.cache.put_buffer(v_buff);
                 },
 
                 eigenVV: function(A, vects, vals) {
                     var n=A.cols,i=n*n;
-                    var dt = A.type | jsfeat.C1_t;
+                    var dt = A.type | jsfeat$1.C1_t;
 
-                    var a_buff = jsfeat.cache.get_buffer((n*n)<<3);
-                    var w_buff = jsfeat.cache.get_buffer(n<<3);
-                    var a_mt = new jsfeat.matrix_t(n, n, dt, a_buff.data);
-                    var w_mt = new jsfeat.matrix_t(1, n, dt, w_buff.data);
+                    var a_buff = jsfeat$1.cache.get_buffer((n*n)<<3);
+                    var w_buff = jsfeat$1.cache.get_buffer(n<<3);
+                    var a_mt = new jsfeat$1.matrix_t(n, n, dt, a_buff.data);
+                    var w_mt = new jsfeat$1.matrix_t(1, n, dt, w_buff.data);
 
                     while(--i >= 0) {
                         a_mt.data[i] = A.data[i];
@@ -1633,8 +1633,8 @@
                         }
                     }
 
-                    jsfeat.cache.put_buffer(a_buff);
-                    jsfeat.cache.put_buffer(w_buff);
+                    jsfeat$1.cache.put_buffer(a_buff);
+                    jsfeat$1.cache.put_buffer(w_buff);
                 }
 
             };
@@ -1643,7 +1643,7 @@
 
         global.linalg = linalg;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -1702,10 +1702,10 @@
     		    T1[8] = 1.0;
     		};
 
-    		var T0 = new jsfeat.matrix_t(3, 3, jsfeat.F32_t|jsfeat.C1_t);
-        	var T1 = new jsfeat.matrix_t(3, 3, jsfeat.F32_t|jsfeat.C1_t);
-        	var AtA = new jsfeat.matrix_t(6, 6, jsfeat.F32_t|jsfeat.C1_t);
-        	var AtB = new jsfeat.matrix_t(6, 1, jsfeat.F32_t|jsfeat.C1_t);
+    		var T0 = new jsfeat$1.matrix_t(3, 3, jsfeat$1.F32_t|jsfeat$1.C1_t);
+        	var T1 = new jsfeat$1.matrix_t(3, 3, jsfeat$1.F32_t|jsfeat$1.C1_t);
+        	var AtA = new jsfeat$1.matrix_t(6, 6, jsfeat$1.F32_t|jsfeat$1.C1_t);
+        	var AtB = new jsfeat$1.matrix_t(6, 1, jsfeat$1.F32_t|jsfeat$1.C1_t);
         	
         	var affine2d = (function () {
 
@@ -1715,17 +1715,17 @@
 
     	        affine2d.prototype.run = function(from, to, model, count) {
     	        	var i=0,j=0;
-    	        	var dt=model.type|jsfeat.C1_t;
+    	        	var dt=model.type|jsfeat$1.C1_t;
     	        	var md=model.data, t0d=T0.data, t1d=T1.data;
     	        	var pt0,pt1,px=0.0,py=0.0;
 
     	            iso_normalize_points(from, to, t0d, t1d, count);
 
-    	            var a_buff = jsfeat.cache.get_buffer((2*count*6)<<3);
-                    var b_buff = jsfeat.cache.get_buffer((2*count)<<3);
+    	            var a_buff = jsfeat$1.cache.get_buffer((2*count*6)<<3);
+                    var b_buff = jsfeat$1.cache.get_buffer((2*count)<<3);
 
-                    var a_mt = new jsfeat.matrix_t(6, 2*count, dt, a_buff.data);
-                    var b_mt = new jsfeat.matrix_t(1, 2*count, dt, b_buff.data);
+                    var a_mt = new jsfeat$1.matrix_t(6, 2*count, dt, a_buff.data);
+                    var b_mt = new jsfeat$1.matrix_t(1, 2*count, dt, b_buff.data);
                     var ad=a_mt.data, bd=b_mt.data;
 
     			    for (; i < count; ++i) {
@@ -1745,23 +1745,23 @@
     			        bd[(i<<1)+1] = t1d[3]*pt1.x + t1d[4]*pt1.y + t1d[5];
     			    }
 
-    			    jsfeat.matmath.multiply_AtA(AtA, a_mt);
-    			    jsfeat.matmath.multiply_AtB(AtB, a_mt, b_mt);
+    			    jsfeat$1.matmath.multiply_AtA(AtA, a_mt);
+    			    jsfeat$1.matmath.multiply_AtB(AtB, a_mt, b_mt);
 
-    			    jsfeat.linalg.lu_solve(AtA, AtB);
+    			    jsfeat$1.linalg.lu_solve(AtA, AtB);
 
     			    md[0] = AtB.data[0], md[1]=AtB.data[1], md[2]=AtB.data[2];
     			    md[3] = AtB.data[3], md[4]=AtB.data[4], md[5]=AtB.data[5];
     			    md[6] = 0.0, md[7] = 0.0, md[8] = 1.0; // fill last row
 
     			    // denormalize
-    			    jsfeat.matmath.invert_3x3(T1, T1);
-    			    jsfeat.matmath.multiply_3x3(model, T1, model);
-    			    jsfeat.matmath.multiply_3x3(model, model, T0);
+    			    jsfeat$1.matmath.invert_3x3(T1, T1);
+    			    jsfeat$1.matmath.multiply_3x3(model, T1, model);
+    			    jsfeat$1.matmath.multiply_3x3(model, model, T0);
 
     			    // free buffer
-    			    jsfeat.cache.put_buffer(a_buff);
-    			    jsfeat.cache.put_buffer(b_buff);
+    			    jsfeat$1.cache.put_buffer(a_buff);
+    			    jsfeat$1.cache.put_buffer(b_buff);
 
     			    return 1;
     	        };
@@ -1787,8 +1787,8 @@
     	        return affine2d;
     	    })();
 
-    	    var mLtL = new jsfeat.matrix_t(9, 9, jsfeat.F32_t|jsfeat.C1_t);
-    	    var Evec = new jsfeat.matrix_t(9, 9, jsfeat.F32_t|jsfeat.C1_t);
+    	    var mLtL = new jsfeat$1.matrix_t(9, 9, jsfeat$1.F32_t|jsfeat$1.C1_t);
+    	    var Evec = new jsfeat$1.matrix_t(9, 9, jsfeat$1.F32_t|jsfeat$1.C1_t);
 
     	    var homography2d = (function () {
 
@@ -1827,10 +1827,10 @@
     				    sMy += Math.abs(from[i].y - cMy);
     				}
 
-    			    if( Math.abs(smx) < jsfeat.EPSILON 
-    			    	|| Math.abs(smy) < jsfeat.EPSILON 
-    			    	|| Math.abs(sMx) < jsfeat.EPSILON 
-    			    	|| Math.abs(sMy) < jsfeat.EPSILON ) return 0;
+    			    if( Math.abs(smx) < jsfeat$1.EPSILON 
+    			    	|| Math.abs(smy) < jsfeat$1.EPSILON 
+    			    	|| Math.abs(sMx) < jsfeat$1.EPSILON 
+    			    	|| Math.abs(sMy) < jsfeat$1.EPSILON ) return 0;
 
     			    smx = count/smx; smy = count/smy;
     			    sMx = count/sMx; sMy = count/sMy;
@@ -1903,15 +1903,15 @@
     			            LtL[i*9+j] = LtL[j*9+i];
     			    }
 
-    				jsfeat.linalg.eigenVV(mLtL, Evec);
+    				jsfeat$1.linalg.eigenVV(mLtL, Evec);
 
     				md[0]=evd[72], md[1]=evd[73], md[2]=evd[74];
     			    md[3]=evd[75], md[4]=evd[76], md[5]=evd[77];
     			    md[6]=evd[78], md[7]=evd[79], md[8]=evd[80];
 
     				// denormalize
-    			    jsfeat.matmath.multiply_3x3(model, T1, model);
-    			    jsfeat.matmath.multiply_3x3(model, model, T0);
+    			    jsfeat$1.matmath.multiply_3x3(model, T1, model);
+    			    jsfeat$1.matmath.multiply_3x3(model, model, T0);
 
     			    // set bottom right to 1.0
     			    x = 1.0/md[8];
@@ -1958,8 +1958,8 @@
     			        var B21=tp1.x, B22=tp1.y, B23=1.0;
     			        var B31=tp2.x, B32=tp2.y, B33=1.0;
 
-    			        var detA = jsfeat.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-    					var detB = jsfeat.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+    			        var detA = jsfeat$1.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+    					var detB = jsfeat$1.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
 
     					if(detA*detB < 0) negative++;
 
@@ -1972,8 +1972,8 @@
     			        B21=tp2.x, B22=tp2.y;
     			        B31=tp3.x, B32=tp3.y;
 
-    			        detA = jsfeat.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-    					detB = jsfeat.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+    			        detA = jsfeat$1.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+    					detB = jsfeat$1.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
 
     					if(detA*detB < 0) negative++;
 
@@ -1986,8 +1986,8 @@
     			        B21=tp2.x, B22=tp2.y;
     			        B31=tp3.x, B32=tp3.y;
 
-    			        detA = jsfeat.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-    					detB = jsfeat.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+    			        detA = jsfeat$1.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+    					detB = jsfeat$1.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
 
     					if(detA*detB < 0) negative++;
 
@@ -2000,8 +2000,8 @@
     			        B21=tp1.x, B22=tp1.y;
     			        B31=tp3.x, B32=tp3.y;
 
-    			        detA = jsfeat.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-    					detB = jsfeat.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+    			        detA = jsfeat$1.matmath.determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+    					detB = jsfeat$1.matmath.determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
 
     					if(detA*detB < 0) negative++;
 
@@ -2106,13 +2106,13 @@
     			    var found = false;
 
     			    var mc=model.cols,mr=model.rows;
-                    var dt = model.type | jsfeat.C1_t;
+                    var dt = model.type | jsfeat$1.C1_t;
 
-    			    var m_buff = jsfeat.cache.get_buffer((mc*mr)<<3);
-    			    var ms_buff = jsfeat.cache.get_buffer(count);
-    			    var err_buff = jsfeat.cache.get_buffer(count<<2);
-    			    var M = new jsfeat.matrix_t(mc, mr, dt, m_buff.data);
-    			    var curr_mask = new jsfeat.matrix_t(count, 1, jsfeat.U8C1_t, ms_buff.data);
+    			    var m_buff = jsfeat$1.cache.get_buffer((mc*mr)<<3);
+    			    var ms_buff = jsfeat$1.cache.get_buffer(count);
+    			    var err_buff = jsfeat$1.cache.get_buffer(count<<2);
+    			    var M = new jsfeat$1.matrix_t(mc, mr, dt, m_buff.data);
+    			    var curr_mask = new jsfeat$1.matrix_t(count, 1, jsfeat$1.U8C1_t, ms_buff.data);
 
     			    var inliers_max = -1, numinliers=0;
     			    var nmodels = 0;
@@ -2122,9 +2122,9 @@
     			    // special case
     			    if(count == model_points) {
     			        if(kernel.run(from, to, M, count) <= 0) {
-    			        	jsfeat.cache.put_buffer(m_buff);
-    			        	jsfeat.cache.put_buffer(ms_buff);
-    			        	jsfeat.cache.put_buffer(err_buff);
+    			        	jsfeat$1.cache.put_buffer(m_buff);
+    			        	jsfeat$1.cache.put_buffer(ms_buff);
+    			        	jsfeat$1.cache.put_buffer(err_buff);
     			        	return false;
     			        }
 
@@ -2134,9 +2134,9 @@
     			        		mask.data[count] = 1;
     			        	}
     			        }
-    			        jsfeat.cache.put_buffer(m_buff);
-    			        jsfeat.cache.put_buffer(ms_buff);
-    			        jsfeat.cache.put_buffer(err_buff);
+    			        jsfeat$1.cache.put_buffer(m_buff);
+    			        jsfeat$1.cache.put_buffer(ms_buff);
+    			        jsfeat$1.cache.put_buffer(err_buff);
     			        return true;
     			    }
 
@@ -2145,9 +2145,9 @@
     			        found = get_subset(kernel, from, to, model_points, count, subset0, subset1);
     			        if(!found) {
     			            if(iter == 0) {
-    			            	jsfeat.cache.put_buffer(m_buff);
-    			            	jsfeat.cache.put_buffer(ms_buff);
-    			            	jsfeat.cache.put_buffer(err_buff);
+    			            	jsfeat$1.cache.put_buffer(m_buff);
+    			            	jsfeat$1.cache.put_buffer(ms_buff);
+    			            	jsfeat$1.cache.put_buffer(err_buff);
     			                return false;
     			            }
     			            break;
@@ -2170,9 +2170,9 @@
     			        }
     			    }
 
-    			    jsfeat.cache.put_buffer(m_buff);
-    			    jsfeat.cache.put_buffer(ms_buff);
-    			    jsfeat.cache.put_buffer(err_buff);
+    			    jsfeat$1.cache.put_buffer(m_buff);
+    			    jsfeat$1.cache.put_buffer(ms_buff);
+    			    jsfeat$1.cache.put_buffer(err_buff);
 
     			    return result;
         		},
@@ -2191,13 +2191,13 @@
     			    var found = false;
 
     			    var mc=model.cols,mr=model.rows;
-                    var dt = model.type | jsfeat.C1_t;
+                    var dt = model.type | jsfeat$1.C1_t;
 
-    			    var m_buff = jsfeat.cache.get_buffer((mc*mr)<<3);
-    			    var ms_buff = jsfeat.cache.get_buffer(count);
-    			    var err_buff = jsfeat.cache.get_buffer(count<<2);
-    			    var M = new jsfeat.matrix_t(mc, mr, dt, m_buff.data);
-    			    var curr_mask = new jsfeat.matrix_t(count, 1, jsfeat.U8_t|jsfeat.C1_t, ms_buff.data);
+    			    var m_buff = jsfeat$1.cache.get_buffer((mc*mr)<<3);
+    			    var ms_buff = jsfeat$1.cache.get_buffer(count);
+    			    var err_buff = jsfeat$1.cache.get_buffer(count<<2);
+    			    var M = new jsfeat$1.matrix_t(mc, mr, dt, m_buff.data);
+    			    var curr_mask = new jsfeat$1.matrix_t(count, 1, jsfeat$1.U8_t|jsfeat$1.C1_t, ms_buff.data);
 
     			    var numinliers=0;
     			    var nmodels = 0;
@@ -2211,9 +2211,9 @@
     			    // special case
     			    if(count == model_points) {
     			        if(kernel.run(from, to, M, count) <= 0) {
-    			        	jsfeat.cache.put_buffer(m_buff);
-    			        	jsfeat.cache.put_buffer(ms_buff);
-    			        	jsfeat.cache.put_buffer(err_buff);
+    			        	jsfeat$1.cache.put_buffer(m_buff);
+    			        	jsfeat$1.cache.put_buffer(ms_buff);
+    			        	jsfeat$1.cache.put_buffer(err_buff);
     			        	return false;
     			        }
 
@@ -2223,9 +2223,9 @@
     			        		mask.data[count] = 1;
     			        	}
     			        }
-    			        jsfeat.cache.put_buffer(m_buff);
-    			        jsfeat.cache.put_buffer(ms_buff);
-    			        jsfeat.cache.put_buffer(err_buff);
+    			        jsfeat$1.cache.put_buffer(m_buff);
+    			        jsfeat$1.cache.put_buffer(ms_buff);
+    			        jsfeat$1.cache.put_buffer(err_buff);
     			        return true;
     			    }
 
@@ -2234,9 +2234,9 @@
     			        found = get_subset(kernel, from, to, model_points, count, subset0, subset1);
     			        if(!found) {
     			            if(iter == 0) {
-    			            	jsfeat.cache.put_buffer(m_buff);
-    			            	jsfeat.cache.put_buffer(ms_buff);
-    			            	jsfeat.cache.put_buffer(err_buff);
+    			            	jsfeat$1.cache.put_buffer(m_buff);
+    			            	jsfeat$1.cache.put_buffer(ms_buff);
+    			            	jsfeat$1.cache.put_buffer(err_buff);
     			                return false;
     			            }
     			            break;
@@ -2249,7 +2249,7 @@
     			        // TODO handle multimodel output
 
     			        kernel.error(from, to, M, err, count);
-    			        median = jsfeat.math.median(err, 0, count-1);
+    			        median = jsfeat$1.math.median(err, 0, count-1);
 
     			        if(median < min_median) {
     			            min_median = median;
@@ -2268,9 +2268,9 @@
     			        result = numinliers >= model_points;
     			    }
 
-    			    jsfeat.cache.put_buffer(m_buff);
-    			    jsfeat.cache.put_buffer(ms_buff);
-    			    jsfeat.cache.put_buffer(err_buff);
+    			    jsfeat$1.cache.put_buffer(m_buff);
+    			    jsfeat$1.cache.put_buffer(ms_buff);
+    			    jsfeat$1.cache.put_buffer(err_buff);
 
     			    return result;
         		}
@@ -2283,7 +2283,7 @@
         global.motion_model = motion_model;
         global.motion_estimator = motion_estimator;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -2303,9 +2303,9 @@
                 var dx=0,dy=0,sx=0,sy=0,sx1=0,sx2=0,i=0,k=0,fsx1=0.0,fsx2=0.0;
                 var a=0,b=0,dxn=0,alpha=0,beta=0,beta1=0;
 
-                var buf_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-                var sum_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-                var xofs_node = jsfeat.cache.get_buffer((w*2*3)<<2);
+                var buf_node = jsfeat$1.cache.get_buffer((nw*ch)<<2);
+                var sum_node = jsfeat$1.cache.get_buffer((nw*ch)<<2);
+                var xofs_node = jsfeat$1.cache.get_buffer((w*2*3)<<2);
 
                 var buf = buf_node.i32;
                 var sum = sum_node.i32;
@@ -2376,9 +2376,9 @@
                     }
                 }
 
-                jsfeat.cache.put_buffer(sum_node);
-                jsfeat.cache.put_buffer(buf_node);
-                jsfeat.cache.put_buffer(xofs_node);
+                jsfeat$1.cache.put_buffer(sum_node);
+                jsfeat$1.cache.put_buffer(buf_node);
+                jsfeat$1.cache.put_buffer(xofs_node);
             };
 
             var _resample = function(src, dst, nw, nh) {
@@ -2390,9 +2390,9 @@
                 var dx=0,dy=0,sx=0,sy=0,sx1=0,sx2=0,i=0,k=0,fsx1=0.0,fsx2=0.0;
                 var a=0,b=0,dxn=0,alpha=0.0,beta=0.0,beta1=0.0;
 
-                var buf_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-                var sum_node = jsfeat.cache.get_buffer((nw*ch)<<2);
-                var xofs_node = jsfeat.cache.get_buffer((w*2*3)<<2);
+                var buf_node = jsfeat$1.cache.get_buffer((nw*ch)<<2);
+                var sum_node = jsfeat$1.cache.get_buffer((nw*ch)<<2);
+                var xofs_node = jsfeat$1.cache.get_buffer((w*2*3)<<2);
 
                 var buf = buf_node.f32;
                 var sum = sum_node.f32;
@@ -2462,9 +2462,9 @@
                         }
                     }
                 }
-                jsfeat.cache.put_buffer(sum_node);
-                jsfeat.cache.put_buffer(buf_node);
-                jsfeat.cache.put_buffer(xofs_node);
+                jsfeat$1.cache.put_buffer(sum_node);
+                jsfeat$1.cache.put_buffer(buf_node);
+                jsfeat$1.cache.put_buffer(xofs_node);
             };
 
             var _convol_u8 = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel) {
@@ -2660,15 +2660,15 @@
                 // for raw arrays
                 grayscale: function(src, w, h, dst, code) {
                     // this is default image data representation in browser
-                    if (typeof code === "undefined") { code = jsfeat.COLOR_RGBA2GRAY; }
+                    if (typeof code === "undefined") { code = jsfeat$1.COLOR_RGBA2GRAY; }
                     var x=0, y=0, i=0, j=0, ir=0,jr=0;
                     var coeff_r = 4899, coeff_g = 9617, coeff_b = 1868, cn = 4;
 
-                    if(code == jsfeat.COLOR_BGRA2GRAY || code == jsfeat.COLOR_BGR2GRAY) {
+                    if(code == jsfeat$1.COLOR_BGRA2GRAY || code == jsfeat$1.COLOR_BGR2GRAY) {
                         coeff_r = 1868;
                         coeff_b = 4899;
                     }
-                    if(code == jsfeat.COLOR_RGB2GRAY || code == jsfeat.COLOR_BGR2GRAY) {
+                    if(code == jsfeat$1.COLOR_RGB2GRAY || code == jsfeat$1.COLOR_BGR2GRAY) {
                         cn = 3;
                     }
                     var cn2 = cn<<1, cn3 = (cn*3)|0;
@@ -2694,7 +2694,7 @@
                     if (h > nh && w > nw) {
                         dst.resize(nw, nh, src.channel);
                         // using the fast alternative (fix point scale, 0x100 to avoid overflow)
-                        if (src.type&jsfeat.U8_t && dst.type&jsfeat.U8_t && h * w / (nh * nw) < 0x100) {
+                        if (src.type&jsfeat$1.U8_t && dst.type&jsfeat$1.U8_t && h * w / (nh * nw) < 0x100) {
                             _resample_u8(src, dst, nw, nh);
                         } else {
                             _resample(src, dst, nw, nh);
@@ -2708,9 +2708,9 @@
                     var i=0,x=0,y=0,end=0;
                     var windowSize = ((radius << 1) + 1)|0;
                     var radiusPlusOne = (radius + 1)|0, radiusPlus2 = (radiusPlusOne+1)|0;
-                    var scale = options&jsfeat.BOX_BLUR_NOSCALE ? 1 : (1.0 / (windowSize*windowSize));
+                    var scale = options&jsfeat$1.BOX_BLUR_NOSCALE ? 1 : (1.0 / (windowSize*windowSize));
 
-                    var tmp_buff = jsfeat.cache.get_buffer((w*h)<<2);
+                    var tmp_buff = jsfeat$1.cache.get_buffer((w*h)<<2);
 
                     var sum=0, dstIndex=0, srcIndex = 0, nextPixelIndex=0, previousPixelIndex=0;
                     var data_i32 = tmp_buff.i32; // to prevent overflow
@@ -2866,7 +2866,7 @@
                         }
                     }
 
-                    jsfeat.cache.put_buffer(tmp_buff);
+                    jsfeat$1.cache.put_buffer(tmp_buff);
                 },
 
                 gaussian_blur: function(src, dst, kernel_size, sigma) {
@@ -2875,20 +2875,20 @@
                     kernel_size = kernel_size == 0 ? (Math.max(1, (4.0 * sigma + 1.0 - 1e-8)) * 2 + 1)|0 : kernel_size;
                     var half_kernel = kernel_size >> 1;
                     var w = src.cols, h = src.rows;
-                    var data_type = src.type, is_u8 = data_type&jsfeat.U8_t;
+                    var data_type = src.type, is_u8 = data_type&jsfeat$1.U8_t;
 
                     dst.resize(w, h, src.channel);
 
                     var src_d = src.data, dst_d = dst.data;
                     var buf,filter,buf_sz=(kernel_size + Math.max(h, w))|0;
 
-                    var buf_node = jsfeat.cache.get_buffer(buf_sz<<2);
-                    var filt_node = jsfeat.cache.get_buffer(kernel_size<<2);
+                    var buf_node = jsfeat$1.cache.get_buffer(buf_sz<<2);
+                    var filt_node = jsfeat$1.cache.get_buffer(kernel_size<<2);
 
                     if(is_u8) {
                         buf = buf_node.i32;
                         filter = filt_node.i32;
-                    } else if(data_type&jsfeat.S32_t) {
+                    } else if(data_type&jsfeat$1.S32_t) {
                         buf = buf_node.i32;
                         filter = filt_node.f32;
                     } else {
@@ -2896,7 +2896,7 @@
                         filter = filt_node.f32;
                     }
 
-                    jsfeat.math.get_gaussian_kernel(kernel_size, sigma, filter, data_type);
+                    jsfeat$1.math.get_gaussian_kernel(kernel_size, sigma, filter, data_type);
 
                     if(is_u8) {
                         _convol_u8(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel);
@@ -2904,8 +2904,8 @@
                         _convol(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel);
                     }
 
-                    jsfeat.cache.put_buffer(buf_node);
-                    jsfeat.cache.put_buffer(filt_node);
+                    jsfeat$1.cache.put_buffer(buf_node);
+                    jsfeat$1.cache.put_buffer(filt_node);
                 },
                 hough_transform: function( img, rho_res, theta_res, threshold ) {
                     var image = img.data;
@@ -3024,10 +3024,10 @@
 
                     var img = src.data, gxgy=dst.data;
 
-                    var buf0_node = jsfeat.cache.get_buffer((w+2)<<2);
-                    var buf1_node = jsfeat.cache.get_buffer((w+2)<<2);
+                    var buf0_node = jsfeat$1.cache.get_buffer((w+2)<<2);
+                    var buf1_node = jsfeat$1.cache.get_buffer((w+2)<<2);
 
-                    if(src.type&jsfeat.U8_t || src.type&jsfeat.S32_t) {
+                    if(src.type&jsfeat$1.U8_t || src.type&jsfeat$1.S32_t) {
                         trow0 = buf0_node.i32;
                         trow1 = buf1_node.i32;
                     } else {
@@ -3077,8 +3077,8 @@
                             gxgy[drow++] = ( ((trow1[x+2] + trow1[x])*3 + trow1[x+1]*10) );
                         }
                     }
-                    jsfeat.cache.put_buffer(buf0_node);
-                    jsfeat.cache.put_buffer(buf1_node);
+                    jsfeat$1.cache.put_buffer(buf0_node);
+                    jsfeat$1.cache.put_buffer(buf1_node);
                 },
 
                 // compute gradient using Sobel kernel [1 2 1] * [-1 0 1]^T
@@ -3093,10 +3093,10 @@
 
                     var img = src.data, gxgy=dst.data;
 
-                    var buf0_node = jsfeat.cache.get_buffer((w+2)<<2);
-                    var buf1_node = jsfeat.cache.get_buffer((w+2)<<2);
+                    var buf0_node = jsfeat$1.cache.get_buffer((w+2)<<2);
+                    var buf1_node = jsfeat$1.cache.get_buffer((w+2)<<2);
 
-                    if(src.type&jsfeat.U8_t || src.type&jsfeat.S32_t) {
+                    if(src.type&jsfeat$1.U8_t || src.type&jsfeat$1.S32_t) {
                         trow0 = buf0_node.i32;
                         trow1 = buf1_node.i32;
                     } else {
@@ -3146,8 +3146,8 @@
                             gxgy[drow++] = ( trow1[x+2] + trow1[x] + trow1[x+1]*2 );
                         }
                     }
-                    jsfeat.cache.put_buffer(buf0_node);
-                    jsfeat.cache.put_buffer(buf1_node);
+                    jsfeat$1.cache.put_buffer(buf0_node);
+                    jsfeat$1.cache.put_buffer(buf1_node);
                 },
 
                 // please note: 
@@ -3264,7 +3264,7 @@
                     var dst_d=dst.data,size=w*h;
                     var i=0,prev=0,hist0,norm;
 
-                    var hist0_node = jsfeat.cache.get_buffer(256<<2);
+                    var hist0_node = jsfeat$1.cache.get_buffer(256<<2);
                     hist0 = hist0_node.i32;
                     for(; i < 256; ++i) hist0[i] = 0;
                     for (i = 0; i < size; ++i) {
@@ -3280,7 +3280,7 @@
                     for (i = 0; i < size; ++i) {
                         dst_d[i] = (hist0[src_d[i]] * norm + 0.5)|0;
                     }
-                    jsfeat.cache.put_buffer(hist0_node);
+                    jsfeat$1.cache.put_buffer(hist0_node);
                 },
 
                 canny: function(src, dst, low_thresh, high_thresh) {
@@ -3293,17 +3293,17 @@
                     var tg22x=0,tg67x=0;
 
                     // cache buffers
-                    var dxdy_node = jsfeat.cache.get_buffer((h * w2)<<2);
-                    var buf_node = jsfeat.cache.get_buffer((3 * (w + 2))<<2);
-                    var map_node = jsfeat.cache.get_buffer(((h+2) * (w + 2))<<2);
-                    var stack_node = jsfeat.cache.get_buffer((h * w)<<2);
+                    var dxdy_node = jsfeat$1.cache.get_buffer((h * w2)<<2);
+                    var buf_node = jsfeat$1.cache.get_buffer((3 * (w + 2))<<2);
+                    var map_node = jsfeat$1.cache.get_buffer(((h+2) * (w + 2))<<2);
+                    var stack_node = jsfeat$1.cache.get_buffer((h * w)<<2);
                     
 
                     var buf = buf_node.i32;
                     var map = map_node.i32;
                     var stack = stack_node.i32;
                     var dxdy = dxdy_node.i32;
-                    var dxdy_m = new jsfeat.matrix_t(w, h, jsfeat.S32C2_t, dxdy_node.data);
+                    var dxdy_m = new jsfeat$1.matrix_t(w, h, jsfeat$1.S32C2_t, dxdy_node.data);
                     var row0=1,row1=(w+2+1)|0,row2=(2*(w+2)+1)|0,map_w=(w+2)|0,map_i=(map_w+1)|0,stack_i=0;
 
                     this.sobel_derivatives(src, dxdy_m);
@@ -3442,10 +3442,10 @@
                     }
 
                     // free buffers
-                    jsfeat.cache.put_buffer(dxdy_node);
-                    jsfeat.cache.put_buffer(buf_node);
-                    jsfeat.cache.put_buffer(map_node);
-                    jsfeat.cache.put_buffer(stack_node);
+                    jsfeat$1.cache.put_buffer(dxdy_node);
+                    jsfeat$1.cache.put_buffer(buf_node);
+                    jsfeat$1.cache.put_buffer(map_node);
+                    jsfeat$1.cache.put_buffer(stack_node);
                 },
                 // transform is 3x3 matrix_t
                 warp_perspective: function(src, dst, transform, fill_value) {
@@ -3537,7 +3537,7 @@
 
         global.imgproc = imgproc;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -3545,245 +3545,249 @@
      * This is FAST corner detector, contributed to OpenCV by the author, Edward Rosten.
      */
 
-    (function(global) {
-        //
-        var fast_corners = (function() {
+    /*
+    The references are:
+     * Machine learning for high-speed corner detection,
+       E. Rosten and T. Drummond, ECCV 2006
+     * Faster and better: A machine learning approach to corner detection
+       E. Rosten, R. Porter and T. Drummond, PAMI, 2009  
+    */
 
-            var offsets16 = new Int32Array([0, 3, 1, 3, 2, 2, 3, 1, 3, 0, 3, -1, 2, -2, 1, -3, 0, -3, -1, -3, -2, -2, -3, -1, -3, 0, -3, 1, -2, 2, -1, 3]);
+    var offsets16 = new Int32Array([0, 3, 1, 3, 2, 2, 3, 1, 3, 0, 3, -1, 2, -2, 1, -3, 0, -3, -1, -3, -2, -2, -3, -1, -3, 0, -3, 1, -2, 2, -1, 3]);
 
-            var threshold_tab = new Uint8Array(512);
-            var pixel_off = new Int32Array(25);
-            var score_diff = new Int32Array(25);
+    var threshold_tab = new Uint8Array(512);
+    var pixel_off = new Int32Array(25);
+    var score_diff = new Int32Array(25);
 
-            // private functions
-            var _cmp_offsets = function(pixel, step, pattern_size) {
-                var k = 0;
-                var offsets = offsets16;
-                for( ; k < pattern_size; ++k ) {
-                    pixel[k] = offsets[k<<1] + offsets[(k<<1)+1] * step;
-                }
-                for( ; k < 25; ++k ) {
-                    pixel[k] = pixel[k - pattern_size];
-                }
-            },
+    // private functions
+    var _cmp_offsets = function(pixel, step, pattern_size) {
+        var k = 0;
+        var offsets = offsets16;
+        for( ; k < pattern_size; ++k ) {
+            pixel[k] = offsets[k<<1] + offsets[(k<<1)+1] * step;
+        }
+        for( ; k < 25; ++k ) {
+            pixel[k] = pixel[k - pattern_size];
+        }
+    },
 
-            _cmp_score_16 = function(src, off, pixel, d, threshold) {
-                var N = 25, k = 0, v = src[off];
-                var a0 = threshold,a=0,b0=0,b=0;
+    _cmp_score_16 = function(src, off, pixel, d, threshold) {
+        var N = 25, k = 0, v = src[off];
+        var a0 = threshold,a=0,b0=0,b=0;
 
-                for( ; k < N; ++k ) {
-                    d[k] = v - src[off+pixel[k]];
-                }
+        for( ; k < N; ++k ) {
+            d[k] = v - src[off+pixel[k]];
+        }
 
-                for( k = 0; k < 16; k += 2 ) {
-                    a = Math.min(d[k+1], d[k+2]);
-                    a = Math.min(a, d[k+3]);
+        for( k = 0; k < 16; k += 2 ) {
+            a = Math.min(d[k+1], d[k+2]);
+            a = Math.min(a, d[k+3]);
 
-                    if( a <= a0 ) continue;
+            if( a <= a0 ) continue;
 
-                    a = Math.min(a, d[k+4]);
-                    a = Math.min(a, d[k+5]);
-                    a = Math.min(a, d[k+6]);
-                    a = Math.min(a, d[k+7]);
-                    a = Math.min(a, d[k+8]);
-                    a0 = Math.max(a0, Math.min(a, d[k]));
-                    a0 = Math.max(a0, Math.min(a, d[k+9]));
-                }
+            a = Math.min(a, d[k+4]);
+            a = Math.min(a, d[k+5]);
+            a = Math.min(a, d[k+6]);
+            a = Math.min(a, d[k+7]);
+            a = Math.min(a, d[k+8]);
+            a0 = Math.max(a0, Math.min(a, d[k]));
+            a0 = Math.max(a0, Math.min(a, d[k+9]));
+        }
 
-                b0 = -a0;
-                for( k = 0; k < 16; k += 2 ) {
-                    b = Math.max(d[k+1], d[k+2]);
-                    b = Math.max(b, d[k+3]);
-                    b = Math.max(b, d[k+4]);
-                    b = Math.max(b, d[k+5]);
+        b0 = -a0;
+        for( k = 0; k < 16; k += 2 ) {
+            b = Math.max(d[k+1], d[k+2]);
+            b = Math.max(b, d[k+3]);
+            b = Math.max(b, d[k+4]);
+            b = Math.max(b, d[k+5]);
 
-                    if( b >= b0 ) continue;
-                    b = Math.max(b, d[k+6]);
-                    b = Math.max(b, d[k+7]);
-                    b = Math.max(b, d[k+8]);
-                    b0 = Math.min(b0, Math.max(b, d[k]));
-                    b0 = Math.min(b0, Math.max(b, d[k+9]));
-                }
+            if( b >= b0 ) continue;
+            b = Math.max(b, d[k+6]);
+            b = Math.max(b, d[k+7]);
+            b = Math.max(b, d[k+8]);
+            b0 = Math.min(b0, Math.max(b, d[k]));
+            b0 = Math.min(b0, Math.max(b, d[k+9]));
+        }
 
-                return -b0-1;
-            };
+        return -b0-1;
+    };
 
-            var _threshold = 20;
+    var _threshold = 20;
 
-            return {
-                set_threshold: function(threshold) {
-                    _threshold = Math.min(Math.max(threshold, 0), 255);
-                    for (var i = -255; i <= 255; ++i) {
-                        threshold_tab[(i + 255)] = (i < -_threshold ? 1 : (i > _threshold ? 2 : 0));
-                    }
-                    return _threshold;
-                },
+    const set_threshold = function(threshold) {
+        _threshold = Math.min(Math.max(threshold, 0), 255);
+        for (var i = -255; i <= 255; ++i) {
+            threshold_tab[(i + 255)] = (i < -_threshold ? 1 : (i > _threshold ? 2 : 0));
+        }
+        return _threshold;
+    };
+
+    const detect = function(src, corners, border) {
+        if (typeof border === "undefined") { border = 3; }
+
+        var K = 8, N = 25;
+        var img = src.data, w = src.cols, h = src.rows;
+        var i=0, j=0, k=0, vt=0, x=0, m3=0;
+        var buf_node = jsfeat.cache.get_buffer(3 * w);
+        var cpbuf_node = jsfeat.cache.get_buffer(((w+1)*3)<<2);
+        var buf = buf_node.u8;
+        var cpbuf = cpbuf_node.i32;
+        var pixel = pixel_off;
+        var sd = score_diff;
+        var sy = Math.max(3, border);
+        var ey = Math.min((h-2), (h-border));
+        var sx = Math.max(3, border);
+        var ex = Math.min((w - 3), (w - border));
+        var _count = 0, corners_cnt = 0, pt;
+        var score_func = _cmp_score_16;
+        var thresh_tab = threshold_tab;
+        var threshold = _threshold;
+
+        var v=0,tab=0,d=0,ncorners=0,cornerpos=0,curr=0,ptr=0,prev=0,pprev=0;
+        var jp1=0,jm1=0,score=0;
+
+        _cmp_offsets(pixel, w, 16);
+
+        // local vars are faster?
+        var pixel0 = pixel[0];
+        var pixel1 = pixel[1];
+        var pixel2 = pixel[2];
+        var pixel3 = pixel[3];
+        var pixel4 = pixel[4];
+        var pixel5 = pixel[5];
+        var pixel6 = pixel[6];
+        var pixel7 = pixel[7];
+        var pixel8 = pixel[8];
+        var pixel9 = pixel[9];
+        var pixel10 = pixel[10];
+        var pixel11 = pixel[11];
+        var pixel12 = pixel[12];
+        var pixel13 = pixel[13];
+        var pixel14 = pixel[14];
+        var pixel15 = pixel[15];
+
+        for(i = 0; i < w*3; ++i) {
+            buf[i] = 0;
+        }
+
+        for(i = sy; i < ey; ++i) {
+            ptr = ((i * w) + sx)|0;
+            m3 = (i - 3)%3;
+            curr = (m3*w)|0;
+            cornerpos = (m3*(w+1))|0;
+            for (j = 0; j < w; ++j) buf[curr+j] = 0;
+            ncorners = 0;
+            
+            if( i < (ey - 1) ) {
+                j = sx;
                 
-                detect: function(src, corners, border) {
-                    if (typeof border === "undefined") { border = 3; }
-
-                    var K = 8, N = 25;
-                    var img = src.data, w = src.cols, h = src.rows;
-                    var i=0, j=0, k=0, vt=0, x=0, m3=0;
-                    var buf_node = jsfeat.cache.get_buffer(3 * w);
-                    var cpbuf_node = jsfeat.cache.get_buffer(((w+1)*3)<<2);
-                    var buf = buf_node.u8;
-                    var cpbuf = cpbuf_node.i32;
-                    var pixel = pixel_off;
-                    var sd = score_diff;
-                    var sy = Math.max(3, border);
-                    var ey = Math.min((h-2), (h-border));
-                    var sx = Math.max(3, border);
-                    var ex = Math.min((w - 3), (w - border));
-                    var _count = 0, corners_cnt = 0, pt;
-                    var score_func = _cmp_score_16;
-                    var thresh_tab = threshold_tab;
-                    var threshold = _threshold;
-
-                    var v=0,tab=0,d=0,ncorners=0,cornerpos=0,curr=0,ptr=0,prev=0,pprev=0;
-                    var jp1=0,jm1=0,score=0;
-
-                    _cmp_offsets(pixel, w, 16);
-
-                    // local vars are faster?
-                    var pixel0 = pixel[0];
-                    var pixel1 = pixel[1];
-                    var pixel2 = pixel[2];
-                    var pixel3 = pixel[3];
-                    var pixel4 = pixel[4];
-                    var pixel5 = pixel[5];
-                    var pixel6 = pixel[6];
-                    var pixel7 = pixel[7];
-                    var pixel8 = pixel[8];
-                    var pixel9 = pixel[9];
-                    var pixel10 = pixel[10];
-                    var pixel11 = pixel[11];
-                    var pixel12 = pixel[12];
-                    var pixel13 = pixel[13];
-                    var pixel14 = pixel[14];
-                    var pixel15 = pixel[15];
-
-                    for(i = 0; i < w*3; ++i) {
-                        buf[i] = 0;
+                for( ; j < ex; ++j, ++ptr ) {
+                    v = img[ptr];
+                    tab = ( - v + 255 );
+                    d = ( thresh_tab[tab+img[ptr+pixel0]] | thresh_tab[tab+img[ptr+pixel8]] );
+                    
+                    if( d == 0 ) {
+                        continue;
                     }
-
-                    for(i = sy; i < ey; ++i) {
-                        ptr = ((i * w) + sx)|0;
-                        m3 = (i - 3)%3;
-                        curr = (m3*w)|0;
-                        cornerpos = (m3*(w+1))|0;
-                        for (j = 0; j < w; ++j) buf[curr+j] = 0;
-                        ncorners = 0;
+                    
+                    d &= ( thresh_tab[tab+img[ptr+pixel2]] | thresh_tab[tab+img[ptr+pixel10]] );
+                    d &= ( thresh_tab[tab+img[ptr+pixel4]] | thresh_tab[tab+img[ptr+pixel12]] );
+                    d &= ( thresh_tab[tab+img[ptr+pixel6]] | thresh_tab[tab+img[ptr+pixel14]] );
+                    
+                    if( d == 0 ) {
+                        continue;
+                    }
+                    
+                    d &= ( thresh_tab[tab+img[ptr+pixel1]] | thresh_tab[tab+img[ptr+pixel9]] );
+                    d &= ( thresh_tab[tab+img[ptr+pixel3]] | thresh_tab[tab+img[ptr+pixel11]] );
+                    d &= ( thresh_tab[tab+img[ptr+pixel5]] | thresh_tab[tab+img[ptr+pixel13]] );
+                    d &= ( thresh_tab[tab+img[ptr+pixel7]] | thresh_tab[tab+img[ptr+pixel15]] );
+                    
+                    if( d & 1 ) {
+                        vt = (v - threshold);
+                        _count = 0;
                         
-                        if( i < (ey - 1) ) {
-                            j = sx;
-                            
-                            for( ; j < ex; ++j, ++ptr ) {
-                                v = img[ptr];
-                                tab = ( - v + 255 );
-                                d = ( thresh_tab[tab+img[ptr+pixel0]] | thresh_tab[tab+img[ptr+pixel8]] );
-                                
-                                if( d == 0 ) {
-                                    continue;
-                                }
-                                
-                                d &= ( thresh_tab[tab+img[ptr+pixel2]] | thresh_tab[tab+img[ptr+pixel10]] );
-                                d &= ( thresh_tab[tab+img[ptr+pixel4]] | thresh_tab[tab+img[ptr+pixel12]] );
-                                d &= ( thresh_tab[tab+img[ptr+pixel6]] | thresh_tab[tab+img[ptr+pixel14]] );
-                                
-                                if( d == 0 ) {
-                                    continue;
-                                }
-                                
-                                d &= ( thresh_tab[tab+img[ptr+pixel1]] | thresh_tab[tab+img[ptr+pixel9]] );
-                                d &= ( thresh_tab[tab+img[ptr+pixel3]] | thresh_tab[tab+img[ptr+pixel11]] );
-                                d &= ( thresh_tab[tab+img[ptr+pixel5]] | thresh_tab[tab+img[ptr+pixel13]] );
-                                d &= ( thresh_tab[tab+img[ptr+pixel7]] | thresh_tab[tab+img[ptr+pixel15]] );
-                                
-                                if( d & 1 ) {
-                                    vt = (v - threshold);
-                                    _count = 0;
-                                    
-                                    for( k = 0; k < N; ++k ) {
-                                        x = img[(ptr+pixel[k])];
-                                        if(x < vt) {
-                                            ++_count;
-                                            if( _count > K ) {
-                                                ++ncorners;
-                                                cpbuf[cornerpos+ncorners] = j;
-                                                buf[curr+j] = score_func(img, ptr, pixel, sd, threshold);
-                                                break;
-                                            }
-                                        }
-                                        else {
-                                            _count = 0;
-                                        }
-                                    }
-                                }
-                                
-                                if( d & 2 ) {
-                                    vt = (v + threshold);
-                                    _count = 0;
-                                    
-                                    for( k = 0; k < N; ++k ) {
-                                        x = img[(ptr+pixel[k])];
-                                        if(x > vt) {
-                                            ++_count;
-                                            if( _count > K ) {
-                                                ++ncorners;
-                                                cpbuf[cornerpos+ncorners] = j;
-                                                buf[curr+j] = score_func(img, ptr, pixel, sd, threshold);
-                                                break;
-                                            }
-                                        }
-                                        else {
-                                            _count = 0;
-                                        }
-                                    }
+                        for( k = 0; k < N; ++k ) {
+                            x = img[(ptr+pixel[k])];
+                            if(x < vt) {
+                                ++_count;
+                                if( _count > K ) {
+                                    ++ncorners;
+                                    cpbuf[cornerpos+ncorners] = j;
+                                    buf[curr+j] = score_func(img, ptr, pixel, sd, threshold);
+                                    break;
                                 }
                             }
-                        }
-                        
-                        cpbuf[cornerpos+w] = ncorners;
-                
-                        if ( i == sy ) {
-                            continue;
-                        }
-                        
-                        m3 = (i - 4 + 3)%3;
-                        prev = (m3*w)|0;
-                        cornerpos = (m3*(w+1))|0;
-                        m3 = (i - 5 + 3)%3;
-                        pprev = (m3*w)|0;
-
-                        ncorners = cpbuf[cornerpos+w];
-                        
-                        for( k = 0; k < ncorners; ++k ) {
-                            j = cpbuf[cornerpos+k];
-                            jp1 = (j+1)|0;
-                            jm1 = (j-1)|0;
-                            score = buf[prev+j];
-                            if( (score > buf[prev+jp1] && score > buf[prev+jm1] &&
-                                score > buf[pprev+jm1] && score > buf[pprev+j] && score > buf[pprev+jp1] &&
-                                score > buf[curr+jm1] && score > buf[curr+j] && score > buf[curr+jp1]) ) {
-                                // save corner
-                                pt = corners[corners_cnt];
-                                pt.x = j, pt.y = (i-1), pt.score = score;
-                                corners_cnt++;
+                            else {
+                                _count = 0;
                             }
                         }
-                    } // y loop
-                    jsfeat.cache.put_buffer(buf_node);
-                    jsfeat.cache.put_buffer(cpbuf_node);
-                    return corners_cnt;
+                    }
+                    
+                    if( d & 2 ) {
+                        vt = (v + threshold);
+                        _count = 0;
+                        
+                        for( k = 0; k < N; ++k ) {
+                            x = img[(ptr+pixel[k])];
+                            if(x > vt) {
+                                ++_count;
+                                if( _count > K ) {
+                                    ++ncorners;
+                                    cpbuf[cornerpos+ncorners] = j;
+                                    buf[curr+j] = score_func(img, ptr, pixel, sd, threshold);
+                                    break;
+                                }
+                            }
+                            else {
+                                _count = 0;
+                            }
+                        }
+                    }
                 }
-            };
-        })();
+            }
+            
+            cpbuf[cornerpos+w] = ncorners;
 
-        global.fast_corners = fast_corners;
-        fast_corners.set_threshold(20); // set default
+            if ( i == sy ) {
+                continue;
+            }
+            
+            m3 = (i - 4 + 3)%3;
+            prev = (m3*w)|0;
+            cornerpos = (m3*(w+1))|0;
+            m3 = (i - 5 + 3)%3;
+            pprev = (m3*w)|0;
 
-    })(jsfeat);
+            ncorners = cpbuf[cornerpos+w];
+            
+            for( k = 0; k < ncorners; ++k ) {
+                j = cpbuf[cornerpos+k];
+                jp1 = (j+1)|0;
+                jm1 = (j-1)|0;
+                score = buf[prev+j];
+                if( (score > buf[prev+jp1] && score > buf[prev+jm1] &&
+                    score > buf[pprev+jm1] && score > buf[pprev+j] && score > buf[pprev+jp1] &&
+                    score > buf[curr+jm1] && score > buf[curr+j] && score > buf[curr+jp1]) ) {
+                    // save corner
+                    pt = corners[corners_cnt];
+                    pt.x = j, pt.y = (i-1), pt.score = score;
+                    corners_cnt++;
+                }
+            }
+        } // y loop
+        jsfeat.cache.put_buffer(buf_node);
+        jsfeat.cache.put_buffer(cpbuf_node);
+        return corners_cnt;
+    };
+
+    set_threshold(20); // set default
+
+    var fast_corners = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        set_threshold: set_threshold,
+        detect: detect
+    });
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -3828,7 +3832,7 @@
                     var w=src.cols, h=src.rows, srd_d=src.data;
                     var Dxx = 5, Dyy = (5 * w)|0;
                     var Dxy = (3 + 3 * w)|0, Dyx = (3 - 3 * w)|0;
-                    var lap_buf = jsfeat.cache.get_buffer((w*h)<<2);
+                    var lap_buf = jsfeat$1.cache.get_buffer((w*h)<<2);
                     var laplacian = lap_buf.i32;
                     var lv=0, row=0,rowx=0,min_eigen_value=0,pt;
                     var number_of_points = 0;
@@ -3873,7 +3877,7 @@
                         }
                     }
 
-                    jsfeat.cache.put_buffer(lap_buf);
+                    jsfeat$1.cache.put_buffer(lap_buf);
 
                     return number_of_points;
                 }
@@ -3883,7 +3887,7 @@
 
         global.yape06 = yape06;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -4261,7 +4265,7 @@
 
         global.yape = yape;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -4534,8 +4538,8 @@
     		    -1,-6, 0,-11/*mean (0.127148), correlation (0.547401)*/
     		]);
 
-    	    var H = new jsfeat.matrix_t(3, 3, jsfeat.F32_t|jsfeat.C1_t);
-    	    var patch_img = new jsfeat.matrix_t(32, 32, jsfeat.U8_t|jsfeat.C1_t);
+    	    var H = new jsfeat$1.matrix_t(3, 3, jsfeat$1.F32_t|jsfeat$1.C1_t);
+    	    var patch_img = new jsfeat$1.matrix_t(32, 32, jsfeat$1.U8_t|jsfeat$1.C1_t);
 
     	    var rectify_patch = function(src, dst, angle, px, py, psize) {
     	    	var cosine = Math.cos(angle);
@@ -4544,7 +4548,7 @@
     	        H.data[0] = cosine, H.data[1] = -sine,    H.data[2] = (-cosine + sine  ) * psize*0.5 + px,
     	        H.data[3] = sine,   H.data[4] =  cosine,  H.data[5] = (-sine   - cosine) * psize*0.5 + py;
 
-    	        jsfeat.imgproc.warp_affine(src, dst, H, 128);
+    	        jsfeat$1.imgproc.warp_affine(src, dst, H, 128);
     	    };
 
         	return {
@@ -4558,9 +4562,9 @@
     				var patch_off = 16*32 + 16; // center of patch
     				var patt=0;
 
-    				if(!(descriptors.type&jsfeat.U8_t)) {
+    				if(!(descriptors.type&jsfeat$1.U8_t)) {
     					// relocate to U8 type
-    					descriptors.type = jsfeat.U8_t;
+    					descriptors.type = jsfeat$1.U8_t;
     					descriptors.cols = DESCR_SIZE;
     	                descriptors.rows = count;
     	                descriptors.channel = 1;
@@ -4625,7 +4629,7 @@
 
         global.orb = orb;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -4638,7 +4642,7 @@
         var optical_flow_lk = (function() {
 
             // short link to shar deriv
-            var scharr_deriv = jsfeat.imgproc.scharr_derivatives;
+            var scharr_deriv = jsfeat$1.imgproc.scharr_derivatives;
 
             return {
                 track: function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_size, max_iter, status, eps, min_eigen_threshold) {
@@ -4654,11 +4658,11 @@
                     var img_prev=prev_imgs[0].data,img_next=next_imgs[0].data;
                     var w0 = prev_imgs[0].cols, h0 = prev_imgs[0].rows,lw=0,lh=0;
 
-                    var iwin_node = jsfeat.cache.get_buffer(win_area<<2);
-                    var deriv_iwin_node = jsfeat.cache.get_buffer(win_area2<<2);
-                    var deriv_lev_node = jsfeat.cache.get_buffer((h0*(w0<<1))<<2);
+                    var iwin_node = jsfeat$1.cache.get_buffer(win_area<<2);
+                    var deriv_iwin_node = jsfeat$1.cache.get_buffer(win_area2<<2);
+                    var deriv_lev_node = jsfeat$1.cache.get_buffer((h0*(w0<<1))<<2);
 
-                    var deriv_m = new jsfeat.matrix_t(w0, h0, jsfeat.S32C2_t, deriv_lev_node.data);
+                    var deriv_m = new jsfeat$1.matrix_t(w0, h0, jsfeat$1.S32C2_t, deriv_lev_node.data);
 
                     var iwin_buf = iwin_node.i32;
                     var deriv_iwin = deriv_iwin_node.i32;
@@ -4862,16 +4866,16 @@
                         } // points loop
                     } // levels loop
 
-                    jsfeat.cache.put_buffer(iwin_node);
-                    jsfeat.cache.put_buffer(deriv_iwin_node);
-                    jsfeat.cache.put_buffer(deriv_lev_node);
+                    jsfeat$1.cache.put_buffer(iwin_node);
+                    jsfeat$1.cache.put_buffer(deriv_iwin_node);
+                    jsfeat$1.cache.put_buffer(deriv_lev_node);
                 }
             };
         })();
 
         global.optical_flow_lk = optical_flow_lk;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -5184,7 +5188,7 @@
                        (r2.width * 1.5 + 0.5)|0 >= r1.width;
             };
 
-            var img_pyr = new jsfeat.pyramid_t(1);
+            var img_pyr = new jsfeat$1.pyramid_t(1);
 
             return {
 
@@ -5219,7 +5223,7 @@
                     var i=0,nw=0,nh=0;
                     var new_pyr=false;
                     var src0=src,src1=src;
-                    var data_type = jsfeat.U8_t | jsfeat.C1_t;
+                    var data_type = jsfeat$1.U8_t | jsfeat$1.C1_t;
 
                     this.interval = interval;
                     this.scale = Math.pow(2, 1 / (this.interval + 1));
@@ -5239,10 +5243,10 @@
                         nh = (sh / Math.pow(this.scale, i))|0;
                         src0 = img_pyr.data[i<<2];
                         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-                            img_pyr.data[i<<2] = new jsfeat.matrix_t(nw, nh, data_type);
+                            img_pyr.data[i<<2] = new jsfeat$1.matrix_t(nw, nh, data_type);
                             src0 = img_pyr.data[i<<2];
                         }
-                        jsfeat.imgproc.resample(src, src0, nw, nh);
+                        jsfeat$1.imgproc.resample(src, src0, nw, nh);
                     }
                     for (i = this.next; i < this.scale_to + this.next * 2; ++i) {
                         src1 = img_pyr.data[(i << 2) - (this.next << 2)];
@@ -5250,10 +5254,10 @@
                         nw = src1.cols >> 1;
                         nh = src1.rows >> 1;
                         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-                            img_pyr.data[i<<2] = new jsfeat.matrix_t(nw, nh, data_type);
+                            img_pyr.data[i<<2] = new jsfeat$1.matrix_t(nw, nh, data_type);
                             src0 = img_pyr.data[i<<2];
                         }
-                        jsfeat.imgproc.pyrdown(src1, src0);
+                        jsfeat$1.imgproc.pyrdown(src1, src0);
                     }
                     for (i = this.next * 2; i < this.scale_to + this.next * 2; ++i) {
                         src1 = img_pyr.data[(i << 2) - (this.next << 2)];
@@ -5261,24 +5265,24 @@
                         nh = src1.rows >> 1;
                         src0 = img_pyr.data[(i<<2)+1];
                         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-                            img_pyr.data[(i<<2)+1] = new jsfeat.matrix_t(nw, nh, data_type);
+                            img_pyr.data[(i<<2)+1] = new jsfeat$1.matrix_t(nw, nh, data_type);
                             src0 = img_pyr.data[(i<<2)+1];
                         }
-                        jsfeat.imgproc.pyrdown(src1, src0, 1, 0);
+                        jsfeat$1.imgproc.pyrdown(src1, src0, 1, 0);
                         //
                         src0 = img_pyr.data[(i<<2)+2];
                         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-                            img_pyr.data[(i<<2)+2] = new jsfeat.matrix_t(nw, nh, data_type);
+                            img_pyr.data[(i<<2)+2] = new jsfeat$1.matrix_t(nw, nh, data_type);
                             src0 = img_pyr.data[(i<<2)+2];
                         }
-                        jsfeat.imgproc.pyrdown(src1, src0, 0, 1);
+                        jsfeat$1.imgproc.pyrdown(src1, src0, 0, 1);
                         //
                         src0 = img_pyr.data[(i<<2)+3];
                         if(new_pyr || nw != src0.cols || nh != src0.rows) {
-                            img_pyr.data[(i<<2)+3] = new jsfeat.matrix_t(nw, nh, data_type);
+                            img_pyr.data[(i<<2)+3] = new jsfeat$1.matrix_t(nw, nh, data_type);
                             src0 = img_pyr.data[(i<<2)+3];
                         }
-                        jsfeat.imgproc.pyrdown(src1, src0, 1, 1);
+                        jsfeat$1.imgproc.pyrdown(src1, src0, 1, 1);
                     }
                     return img_pyr;
                 },
@@ -5550,14 +5554,15 @@
 
         global.bbf = bbf;
 
-    })(jsfeat);
+    })(jsfeat$1);
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
      */
 
-    jsfeat.haar = haar;
+    jsfeat$1.fast_corners = fast_corners;
+    jsfeat$1.haar = haar;
 
-    return jsfeat;
+    return jsfeat$1;
 
 })));

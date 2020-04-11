@@ -9,7 +9,7 @@ import "./jsfeat_mat_math";
 import "./jsfeat_linalg";
 import "./jsfeat_motion_estimator";
 import "./jsfeat_imgproc";
-import "./jsfeat_fast_corners";
+import * as fast_corners from "./jsfeat_fast_corners";
 import "./jsfeat_yape06";
 import "./jsfeat_yape";
 import "./jsfeat_orb";
@@ -19,6 +19,7 @@ import "./jsfeat_bbf";
 
 import jsfeat from "./jsfeat_namespace";
 
+jsfeat.fast_corners = fast_corners;
 jsfeat.haar = haar;
 
 export default jsfeat;
