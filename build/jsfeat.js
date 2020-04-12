@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global = global || self, global.jsfeat = factory());
-}(this, (function () { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    (global = global || self, factory(global.jsfeat = {}));
+}(this, (function (exports) { 'use strict';
 
     function data_t(size_in_bytes, buffer) {
         // we need align size to multiple of 8
@@ -199,7 +199,7 @@
     // if having cache sys really helps we can add auto extending sys
     allocate(30, 640*4);
 
-    var cache = /*#__PURE__*/Object.freeze({
+    var jsfeat_cache = /*#__PURE__*/Object.freeze({
         __proto__: null,
         allocate: allocate,
         get_buffer: get_buffer,
@@ -606,7 +606,7 @@
         }
     };
 
-    var math = /*#__PURE__*/Object.freeze({
+    var jsfeat_math = /*#__PURE__*/Object.freeze({
         __proto__: null,
         get_gaussian_kernel: get_gaussian_kernel,
         perspective_4point_transform: perspective_4point_transform,
@@ -1862,7 +1862,7 @@
         }                
     };
 
-    var imgproc = /*#__PURE__*/Object.freeze({
+    var jsfeat_imgproc = /*#__PURE__*/Object.freeze({
         __proto__: null,
         grayscale: grayscale,
         resample: resample,
@@ -2133,7 +2133,7 @@
                     M31 * M12 * M23 - M31 * M13 * M22;
     };
 
-    var matmath = /*#__PURE__*/Object.freeze({
+    var jsfeat_mat_math = /*#__PURE__*/Object.freeze({
         __proto__: null,
         identity: identity,
         transpose: transpose,
@@ -2822,7 +2822,7 @@
         put_buffer(w_buff);
     };
 
-    var linalg = /*#__PURE__*/Object.freeze({
+    var jsfeat_linalg = /*#__PURE__*/Object.freeze({
         __proto__: null,
         lu_solve: lu_solve,
         cholesky_solve: cholesky_solve,
@@ -3692,7 +3692,7 @@
 
     set_threshold(20); // set default
 
-    var fast_corners = /*#__PURE__*/Object.freeze({
+    var jsfeat_fast_corners = /*#__PURE__*/Object.freeze({
         __proto__: null,
         set_threshold: set_threshold,
         detect: detect
@@ -3786,7 +3786,7 @@
         return number_of_points;
     };
 
-    var yape06 = /*#__PURE__*/Object.freeze({
+    var jsfeat_yape06 = /*#__PURE__*/Object.freeze({
         __proto__: null,
         laplacian_threshold: laplacian_threshold,
         min_eigen_value_threshold: min_eigen_value_threshold,
@@ -4185,7 +4185,7 @@
         return number_of_points;
     };
 
-    var yape = /*#__PURE__*/Object.freeze({
+    var jsfeat_yape = /*#__PURE__*/Object.freeze({
         __proto__: null,
         level_tables: level_tables,
         tau: tau,
@@ -4543,7 +4543,7 @@
     	}
     };
 
-    var orb = /*#__PURE__*/Object.freeze({
+    var jsfeat_orb = /*#__PURE__*/Object.freeze({
         __proto__: null,
         describe: describe
     });
@@ -4780,7 +4780,7 @@
         put_buffer(deriv_lev_node);
     };
 
-    var optical_flow_lk = /*#__PURE__*/Object.freeze({
+    var jsfeat_optical_flow_lk = /*#__PURE__*/Object.freeze({
         __proto__: null,
         track: track
     });
@@ -5062,7 +5062,7 @@
         return result_seq;
     };
 
-    var haar = /*#__PURE__*/Object.freeze({
+    var jsfeat_haar = /*#__PURE__*/Object.freeze({
         __proto__: null,
         edges_density: edges_density,
         detect_single_scale: detect_single_scale,
@@ -5446,7 +5446,7 @@
         return result_seq;
     };
 
-    var bbf = /*#__PURE__*/Object.freeze({
+    var jsfeat_bbf = /*#__PURE__*/Object.freeze({
         __proto__: null,
         get interval () { return interval; },
         get scale () { return scale; },
@@ -5461,27 +5461,29 @@
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
      */
-    const jsfeat = { REVISION: "ALPHA" };
-    jsfeat.data_t = data_t;
-    jsfeat.keypoint_t = keypoint_t;
-    jsfeat.matrix_t = matrix_t;
-    jsfeat.pyramid_t = pyramid_t;
-    jsfeat.cache = cache;
-    jsfeat.math = math;
-    jsfeat.matmath = matmath;
-    jsfeat.linalg = linalg;
-    jsfeat.motion_esimtator = motion_estimator;
-    jsfeat.motion_model = motion_model;
-    jsfeat.ransac_params_t = ransac_params_t$1;
-    jsfeat.imgproc = imgproc;
-    jsfeat.fast_corners = fast_corners;
-    jsfeat.yape06 = yape06;
-    jsfeat.yape = yape;
-    jsfeat.orb = orb;
-    jsfeat.optical_flow_lk = optical_flow_lk;
-    jsfeat.haar = haar;
-    jsfeat.bbf = bbf;
+    const REVISION = "ALPHA";
 
-    return jsfeat;
+    exports.REVISION = REVISION;
+    exports.bbf = jsfeat_bbf;
+    exports.cache = jsfeat_cache;
+    exports.data_t = data_t;
+    exports.fast_corners = jsfeat_fast_corners;
+    exports.haar = jsfeat_haar;
+    exports.imgproc = jsfeat_imgproc;
+    exports.keypoint_t = keypoint_t;
+    exports.linalg = jsfeat_linalg;
+    exports.math = jsfeat_math;
+    exports.matmath = jsfeat_mat_math;
+    exports.matrix_t = matrix_t;
+    exports.motion_estimator = motion_estimator;
+    exports.motion_model = motion_model;
+    exports.optical_flow_lk = jsfeat_optical_flow_lk;
+    exports.orb = jsfeat_orb;
+    exports.pyramid_t = pyramid_t;
+    exports.ransac_params_t = ransac_params_t$1;
+    exports.yape = jsfeat_yape;
+    exports.yape06 = jsfeat_yape06;
+
+    Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
