@@ -3,6 +3,14 @@
  *
  */
 
+/**
+ * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
+ */
+
+/**
+ * @param {matrix_t} M
+ * @param {number=} value
+ */
 export const identity = function(M, value) {
     if (typeof value === "undefined") { value=1; }
     var src=M.data;
@@ -18,6 +26,10 @@ export const identity = function(M, value) {
     }
 }
 
+/**
+ * @param {matrix_t} At
+ * @param {matrix_t} A
+ */
 export const transpose = function(At, A) {
     var i=0,j=0,nrows=A.rows,ncols=A.cols;
     var Ai=0,Ati=0,pAt=0;
@@ -29,7 +41,13 @@ export const transpose = function(At, A) {
     }
 }
 
-// C = A * B
+/**
+ * C = A * B
+ *
+ * @param {matrix_t} C
+ * @param {matrix_t} A
+ * @param {matrix_t} B
+ */
 export const multiply = function(C, A, B) {
     var i=0,j=0,k=0;
     var Ap=0,pA=0,pB=0,p_B=0,Cp=0;
@@ -50,7 +68,13 @@ export const multiply = function(C, A, B) {
     }
 }
 
-// C = A * B'
+/**
+ * C = A * B'
+ *
+ * @param {matrix_t} C
+ * @param {matrix_t} A
+ * @param {matrix_t} B
+ */
 export const multiply_ABt = function(C, A, B) {
     var i=0,j=0,k=0;
     var Ap=0,pA=0,pB=0,Cp=0;
@@ -70,7 +94,13 @@ export const multiply_ABt = function(C, A, B) {
     }
 }
 
-// C = A' * B
+/**
+ * C = A' * B
+ *
+ * @param {matrix_t} C
+ * @param {matrix_t} A
+ * @param {matrix_t} B
+ */
 export const multiply_AtB = function(C, A, B) {
     var i=0,j=0,k=0;
     var Ap=0,pA=0,pB=0,p_B=0,Cp=0;
@@ -91,7 +121,12 @@ export const multiply_AtB = function(C, A, B) {
     }
 }
 
-// C = A * A'
+/**
+ * C = A * A'
+ * 
+ * @param {matrix_t} C
+ * @param {matrix_t} A
+ */
 export const multiply_AAt = function(C, A) {
     var i=0,j=0,k=0;
     var pCdiag=0,p_A=0,pA=0,pB=0,pC=0,pCt=0;
@@ -115,7 +150,12 @@ export const multiply_AAt = function(C, A) {
     }
 }
 
-// C = A' * A
+/**
+ * C = A' * A
+ *
+ * @param {matrix_t} C
+ * @param {matrix_t} A
+ */
 export const multiply_AtA = function(C, A) {
     var i=0,j=0,k=0;
     var p_A=0,pA=0,pB=0,p_C=0,pC=0,p_CC=0;
@@ -141,6 +181,11 @@ export const multiply_AtA = function(C, A) {
 }
 
 // various small matrix operations
+
+/**
+ * @param {matrix_t} M
+ * @param {number=} value
+ */
 export const identity_3x3 = function(M, value) {
     if (typeof value === "undefined") { value=1; }
     var dt=M.data;
@@ -149,6 +194,10 @@ export const identity_3x3 = function(M, value) {
     dt[5] = dt[6] = dt[7] = 0;
 }
 
+/**
+ * @param {matrix_t} from
+ * @param {matrix_t} to
+ */
 export const invert_3x3 = function(from, to) {
     var A = from.data, invA = to.data;
     var t1 = A[4];
@@ -179,7 +228,13 @@ export const invert_3x3 = function(from, to) {
     invA[8] = (t9-t15)*t26;
 }
 
-// C = A * B
+/**
+ * C = A * B
+ *
+ * @param {matrix_t} C
+ * @param {matrix_t} A
+ * @param {matrix_t} B
+ */
 export const multiply_3x3 = function(C, A, B) {
     var Cd=C.data, Ad=A.data, Bd=B.data;
     var m1_0 = Ad[0], m1_1 = Ad[1], m1_2 = Ad[2];
@@ -201,6 +256,9 @@ export const multiply_3x3 = function(C, A, B) {
     Cd[8] = m1_6 * m2_2 + m1_7 * m2_5 + m1_8 * m2_8;
 }
 
+/**
+ * @param {matrix_t} M
+ */
 export const mat3x3_determinant = function(M) {
     var md=M.data;
     return  md[0] * md[4] * md[8] -
@@ -211,10 +269,21 @@ export const mat3x3_determinant = function(M) {
             md[6] * md[2] * md[4];
 }
 
+/**
+ * @param {number} M11
+ * @param {number} M12
+ * @param {number} M13
+ * @param {number} M21
+ * @param {number} M22
+ * @param {number} M23
+ * @param {number} M31
+ * @param {number} M32
+ * @param {number} M33
+ */
 export const determinant_3x3 = function(M11, M12, M13, 
                                         M21, M22, M23, 
                                         M31, M32, M33) {
     return  M11 * M22 * M33 - M11 * M23 * M32 -
-                M21 * M12 * M33 + M21 * M13 * M32 +
-                M31 * M12 * M23 - M31 * M13 * M22;
+            M21 * M12 * M33 + M21 * M13 * M32 +
+            M31 * M12 * M23 - M31 * M13 * M22;
 }

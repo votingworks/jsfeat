@@ -4,33 +4,42 @@
     (global = global || self, factory(global.jsfeat = {}));
 }(this, (function (exports) { 'use strict';
 
-    function data_t(size_in_bytes, buffer) {
-        // we need align size to multiple of 8
-        this.size = ((size_in_bytes + 7) | 0) & -8;
-        if (typeof buffer === "undefined") { 
+    class data_t {
+        /**
+         * @param {number} size_in_bytes
+         */
+        constructor(size_in_bytes) {
+            // we need align size to multiple of 8
+            this.size = ((size_in_bytes + 7) | 0) & -8;
             this.buffer = new ArrayBuffer(this.size);
-        } else {
-            this.buffer = buffer;
-            this.size = buffer.length;
+            this.u8 = new Uint8Array(this.buffer);
+            this.i32 = new Int32Array(this.buffer);
+            this.f32 = new Float32Array(this.buffer);
+            this.f64 = new Float64Array(this.buffer);
         }
-        this.u8 = new Uint8Array(this.buffer);
-        this.i32 = new Int32Array(this.buffer);
-        this.f32 = new Float32Array(this.buffer);
-        this.f64 = new Float64Array(this.buffer);
     }
 
-    function keypoint_t(x,y,score,level,angle) {
-        if (typeof x === "undefined") { x=0; }
-        if (typeof y === "undefined") { y=0; }
-        if (typeof score === "undefined") { score=0; }
-        if (typeof level === "undefined") { level=0; }
-        if (typeof angle === "undefined") { angle=-1.0; }
+    class keypoint_t {
+        /**
+         * @param {number=} x
+         * @param {number=} y 
+         * @param {number=} score 
+         * @param {number=} level 
+         * @param {number=} angle 
+         */
+        constructor(x,y,score,level,angle) {
+            if (typeof x === "undefined") { x=0; }
+            if (typeof y === "undefined") { y=0; }
+            if (typeof score === "undefined") { score=0; }
+            if (typeof level === "undefined") { level=0; }
+            if (typeof angle === "undefined") { angle=-1.0; }
 
-        this.x = x;
-        this.y = y;
-        this.score = score;
-        this.level = level;
-        this.angle = angle;
+            this.x = x;
+            this.y = y;
+            this.score = score;
+            this.level = level;
+            this.angle = angle;
+        }
     }
 
     /**
@@ -47,28 +56,38 @@
         S32_t = 0x0200,
         F32_t = 0x0400;
 
+    /**
+     * @typedef {Uint8Array | Int32Array | Float32Array | Float64Array} Data
+     */
+
     var C1_t = 0x01,
         C2_t = 0x02;
 
     var _data_type_size = new Int32Array([ -1, 1, 4, -1, 4, -1, -1, -1, 8, -1, -1, -1, -1, -1, -1, -1, 8 ]);
 
-    var get_data_type = (function () {
-        return function(type) {
-            return (type & 0xFF00);
-        }
-    })();
+    /**
+     * @param {number} type
+     * @returns {number}
+     */
+    var get_data_type = function(type) {
+        return (type & 0xFF00);
+    };
 
-    var get_channel = (function () {
-        return function(type) {
-            return (type & 0xFF);
-        }
-    })();
+    /**
+     * @param {number} type
+     * @returns {number}
+     */
+    var get_channel = function(type) {
+        return (type & 0xFF);
+    };
 
-    var get_data_type_size = (function () {
-        return function(type) {
-            return _data_type_size[(type & 0xFF00) >> 8];
-        }
-    })();
+    /**
+     * @param {number} type
+     * @returns {number}
+     */
+    var get_data_type_size = function(type) {
+        return _data_type_size[(type & 0xFF00) >> 8];
+    };
 
     // color conversion
     var COLOR_RGBA2GRAY = 0;
@@ -87,55 +106,77 @@
     const S32C2_t = S32_t | C2_t;
 
     // columns, rows, data_type
-    function matrix_t(c, r, data_type, data_buffer) {
-        this.type = get_data_type(data_type)|0;
-        this.channel = get_channel(data_type)|0;
-        this.cols = c|0;
-        this.rows = r|0;
-        if (typeof data_buffer === "undefined") { 
-            this.allocate();
-        } else {
-            this.buffer = data_buffer;
-            // data user asked for
+    class matrix_t {
+        /**
+         * @param {number} c
+         * @param {number} r
+         * @param {number} data_type
+         * @param {data_t=} data_buffer
+         */
+        constructor(c, r, data_type, data_buffer) {
+            this.type = get_data_type(data_type)|0;
+            /**
+             * @type {number}
+             */
+            this.channel = get_channel(data_type)|0;
+            this.cols = c|0;
+            this.rows = r|0;
+            if (typeof data_buffer === "undefined") { 
+                this.allocate();
+            } else {
+                this.buffer = data_buffer;
+                // data user asked for
+                this.data = /** @type {import('../jsfeat_struct').Data} */(this.type&U8_t ? this.buffer.u8 : (this.type&S32_t ? this.buffer.i32 : (this.type&F32_t ? this.buffer.f32 : this.buffer.f64)));
+            }
+        }
+
+        allocate() {
+            // clear references
+            delete this.data;
+            delete this.buffer;
+            //
+            this.buffer = new data_t((this.cols * get_data_type_size(this.type) * this.channel) * this.rows);
             this.data = this.type&U8_t ? this.buffer.u8 : (this.type&S32_t ? this.buffer.i32 : (this.type&F32_t ? this.buffer.f32 : this.buffer.f64));
         }
+
+        /**
+         * @param {matrix_t} other
+         */
+        copy_to(other) {
+            var od = other.data, td = this.data;
+            var i = 0, n = (this.cols*this.rows*this.channel)|0;
+            for(; i < n-4; i+=4) {
+                od[i] = td[i];
+                od[i+1] = td[i+1];
+                od[i+2] = td[i+2];
+                od[i+3] = td[i+3];
+            }
+            for(; i < n; ++i) {
+                od[i] = td[i];
+            }
+        }
+
+        /**
+         * @param {number} c
+         * @param {number} r
+         * @param {number=} ch
+         */
+        resize(c, r, ch) {
+            if (typeof ch === "undefined") { ch = this.channel; }
+            // relocate buffer only if new size doesnt fit
+            var new_size = (c * get_data_type_size(this.type) * ch) * r;
+            if(new_size > this.buffer.size) {
+                this.cols = c;
+                this.rows = r;
+                this.channel = ch;
+                this.allocate();
+            } else {
+                this.cols = c;
+                this.rows = r;
+                this.channel = ch;
+            }
+        }
     }
-    matrix_t.prototype.allocate = function() {
-        // clear references
-        delete this.data;
-        delete this.buffer;
-        //
-        this.buffer = new data_t((this.cols * get_data_type_size(this.type) * this.channel) * this.rows);
-        this.data = this.type&U8_t ? this.buffer.u8 : (this.type&S32_t ? this.buffer.i32 : (this.type&F32_t ? this.buffer.f32 : this.buffer.f64));
-    };
-    matrix_t.prototype.copy_to = function(other) {
-        var od = other.data, td = this.data;
-        var i = 0, n = (this.cols*this.rows*this.channel)|0;
-        for(; i < n-4; i+=4) {
-            od[i] = td[i];
-            od[i+1] = td[i+1];
-            od[i+2] = td[i+2];
-            od[i+3] = td[i+3];
-        }
-        for(; i < n; ++i) {
-            od[i] = td[i];
-        }
-    };
-    matrix_t.prototype.resize = function(c, r, ch) {
-        if (typeof ch === "undefined") { ch = this.channel; }
-        // relocate buffer only if new size doesnt fit
-        var new_size = (c * get_data_type_size(this.type) * ch) * r;
-        if(new_size > this.buffer.size) {
-            this.cols = c;
-            this.rows = r;
-            this.channel = ch;
-            this.allocate();
-        } else {
-            this.cols = c;
-            this.rows = r;
-            this.channel = ch;
-        }
-    };
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
@@ -145,9 +186,15 @@
     // of course V8 has its own powerful cache sys but i'm not sure
     // it caches several multichannel 640x480 buffer creations each frame
 
-    var _pool_node_t = (function () {
-        function _pool_node_t(size_in_bytes) {
-            this.next = null;
+    class _pool_node_t {
+        /**
+         * @param {number} size_in_bytes
+         */
+        constructor(size_in_bytes) {
+            /**
+             * @type {_pool_node_t | undefined}
+             */
+            this.next = undefined;
             this.data = new data_t(size_in_bytes);
             this.size = this.data.size;
             this.buffer = this.data.buffer;
@@ -156,21 +203,22 @@
             this.f32 = this.data.f32;
             this.f64 = this.data.f64;
         }
-        _pool_node_t.prototype.resize = function(size_in_bytes) {
-            delete this.data;
-            this.data = new data_t(size_in_bytes);
-            this.size = this.data.size;
-            this.buffer = this.data.buffer;
-            this.u8 = this.data.u8;
-            this.i32 = this.data.i32;
-            this.f32 = this.data.f32;
-            this.f64 = this.data.f64;
-        };
-        return _pool_node_t;
-    })();
+    }
 
-    var _pool_head, _pool_tail;
+    /**
+     * @type {_pool_node_t}
+     */
+    var _pool_head;
 
+    /**
+     * @type {_pool_node_t}
+     */
+    var _pool_tail;
+
+    /**
+     * @param {number} capacity
+     * @param {number} data_size
+     */
     const allocate = function(capacity, data_size) {
         _pool_head = _pool_tail = new _pool_node_t(data_size);
         for (var i = 0; i < capacity; ++i) {
@@ -179,18 +227,30 @@
         }
     };
 
+    /**
+     * @param {number} size_in_bytes
+     * @returns {_pool_node_t}
+     */
     const get_buffer = function(size_in_bytes) {
         // assume we have enough free nodes
         var node = _pool_head;
-        _pool_head = _pool_head.next;
 
-        if(size_in_bytes > node.size) {
-            node.resize(size_in_bytes);
+        if (size_in_bytes > node.size) {
+            throw new Error(`buffer size (${node.size}) is not big enough, requested ${size_in_bytes}`)
         }
+
+        if (!node.next) {
+            throw new Error('ran out of buffers')
+        }
+
+        _pool_head = node.next;
 
         return node;
     };
 
+    /**
+     * @param {_pool_node_t} node
+     */
     const put_buffer = function(node) {
         _pool_tail = _pool_tail.next = node;
     };
@@ -210,8 +270,19 @@
      * @author Eugene Zatepyakin / http://inspirit.ru/
      */
 
+    /**
+     * @typedef {import('./jsfeat_struct').Data} Data
+     * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
+     */
+
     var qsort_stack = new Int32Array(48*2);
 
+    /**
+     * @param {number} size
+     * @param {number} sigma 
+     * @param {Data} kernel 
+     * @param {number} data_type 
+     */
     const get_gaussian_kernel = function(size, sigma, kernel, data_type) {
         var i=0,x=0.0,t=0.0,sigma_x=0.0,scale_2x=0.0;
         var sum = 0.0;
@@ -270,7 +341,25 @@
         put_buffer(kern_node);
     };
 
-    // model is 3x3 matrix_t
+    /**
+     * @param {matrix_t} model 3x3 matrix
+     * @param {number} src_x0 
+     * @param {number} src_y0 
+     * @param {number} dst_x0 
+     * @param {number} dst_y0 
+     * @param {number} src_x1 
+     * @param {number} src_y1 
+     * @param {number} dst_x1 
+     * @param {number} dst_y1 
+     * @param {number} src_x2 
+     * @param {number} src_y2 
+     * @param {number} dst_x2 
+     * @param {number} dst_y2 
+     * @param {number} src_x3 
+     * @param {number} src_y3 
+     * @param {number} dst_x3 
+     * @param {number} dst_y3 
+     */
     const perspective_4point_transform = function(model, src_x0, src_y0, dst_x0, dst_y0,
                                                         src_x1, src_y1, dst_x1, dst_y1,
                                                         src_x2, src_y2, dst_x2, dst_y2,
@@ -387,9 +476,16 @@
         mat[8] = -Hl6*t50-Hl7*(t44*t15)+t47*t15;
     };
 
-    // The current implementation was derived from *BSD system qsort():
-    // Copyright (c) 1992, 1993
-    // The Regents of the University of California.  All rights reserved.
+    /**
+     * The current implementation was derived from *BSD system qsort():
+     * Copyright (c) 1992, 1993
+     * The Regents of the University of California.  All rights reserved.
+     *
+     * @param {Data} array
+     * @param {number} low
+     * @param {number} high
+     * @param {(a: number, b: number) => number} cmp
+     */
     const qsort = function(array, low, high, cmp) {
         var isort_thresh = 7;
         var t,ta,tb,tc;
@@ -554,6 +650,12 @@
         }
     };
 
+    /**
+     * @param {Float32Array} array
+     * @param {number} low
+     * @param {number} high
+     * @returns {number}
+     */
     const median = function(array, low, high) {
         var w;
         var middle=0,ll=0,hh=0,median=(low+high)>>1;
@@ -618,6 +720,16 @@
      * @author Eugene Zatepyakin / http://inspirit.ru/
      */
 
+    /**
+     * @typedef {import('./jsfeat_struct').Data} Data
+     */
+
+    /**
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {number} nw
+     * @param {number} nh
+     */
     var _resample_u8 = function(src, dst, nw, nh) {
         var xofs_count=0;
         var ch=src.channel,w=src.cols,h=src.rows;
@@ -705,6 +817,12 @@
         put_buffer(xofs_node);
     };
 
+    /**
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {number} nw
+     * @param {number} nh
+     */
     var _resample = function(src, dst, nw, nh) {
         var xofs_count=0;
         var ch=src.channel,w=src.cols,h=src.rows;
@@ -791,6 +909,16 @@
         put_buffer(xofs_node);
     };
 
+    /**
+     * @param {Data} buf
+     * @param {Data} src_d
+     * @param {Data} dst_d
+     * @param {number} w
+     * @param {number} h
+     * @param {Data} filter
+     * @param {number} kernel_size
+     * @param {number} half_kernel
+     */
     var _convol_u8 = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel) {
         var i=0,j=0,k=0,sp=0,dp=0,sum=0,sum1=0,sum2=0,sum3=0,f0=filter[0],fk=0;
         var w2=w<<1,w3=w*3,w4=w<<2;
@@ -885,6 +1013,17 @@
         }
     };
 
+    /**
+     * 
+     * @param {Data} buf
+     * @param {Data} src_d
+     * @param {Data} dst_d
+     * @param {number} w
+     * @param {number} h
+     * @param {Data} filter
+     * @param {number} kernel_size
+     * @param {number} half_kernel
+     */
     var _convol = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel) {
         var i=0,j=0,k=0,sp=0,dp=0,sum=0.0,sum1=0.0,sum2=0.0,sum3=0.0,f0=filter[0],fk=0.0;
         var w2=w<<1,w3=w*3,w4=w<<2;
@@ -979,8 +1118,16 @@
         }
     };
 
-    // TODO: add support for RGB/BGR order
-    // for raw arrays
+    /**
+     * TODO: add support for RGB/BGR order
+     * for raw arrays
+     *
+     * @param {Float32Array} src
+     * @param {number} w
+     * @param {number} h
+     * @param {matrix_t} dst
+     * @param {number=} code
+     */
     const grayscale = function(src, w, h, dst, code) {
         // this is default image data representation in browser
         if (typeof code === "undefined") { code = COLOR_RGBA2GRAY; }
@@ -1012,7 +1159,14 @@
         }
     };
 
-    // derived from CCV library
+    /**
+     * derived from CCV library
+     *
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {number} nw
+     * @param {number} nh
+     */
     const resample = function(src, dst, nw, nh) {
         var h=src.rows,w=src.cols;
         if (h > nh && w > nw) {
@@ -1026,6 +1180,12 @@
         }
     };
 
+    /**
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {number} radius
+     * @param {number=} options
+     */
     const box_blur_gray = function(src, dst, radius, options) {
         if (typeof options === "undefined") { options = 0; }
         var w=src.cols, h=src.rows, h2=h<<1, w2=w<<1;
@@ -1193,6 +1353,12 @@
         put_buffer(tmp_buff);
     };
 
+    /**
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {number=} kernel_size
+     * @param {number=} sigma
+     */
     const gaussian_blur = function(src, dst, kernel_size, sigma) {
         if (typeof sigma === "undefined") { sigma = 0.0; }
         if (typeof kernel_size === "undefined") { kernel_size = 0; }
@@ -1232,6 +1398,14 @@
         put_buffer(filt_node);
     };
 
+    /**
+     * 
+     * @param {matrix_t} img
+     * @param {number} rho_res
+     * @param {number} theta_res
+     * @param {number} threshold
+     * @returns {[number, number][]}
+     */
     const hough_transform = function( img, rho_res, theta_res, threshold ) {
         var image = img.data;
 
@@ -1288,13 +1462,14 @@
 
         // stage 3. sort the detected lines by accumulator value
         _sort_buf.sort(function(l1, l2) {
-            return accum[l1] > accum[l2] || (accum[l1] == accum[l2] && l1 < l2);
+            return (accum[l1] > accum[l2] || (accum[l1] == accum[l2] && l1 < l2)) ? 1 : 0;
         });
 
         // stage 4. store the first min(total,linesMax) lines to the output buffer
         var linesMax = Math.min(numangle*numrho, _sort_buf.length);
         var scale = 1.0 / (numrho+2);
-        var lines = new Array();
+        /** @type {[number, number][]} */
+        var lines = [];
         for( let i = 0; i < linesMax; i++ ) {
             var idx = _sort_buf[i];
             let n = Math.floor(idx*scale) - 1;
@@ -1306,7 +1481,14 @@
         return lines;
     };
 
-    // assume we always need it for u8 image
+    /**
+     * assume we always need it for u8 image
+     *
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {number=} sx
+     * @param {number=} sy
+     */
     const pyrdown = function(src, dst, sx, sy) {
         // this is needed for bbf
         if (typeof sx === "undefined") { sx = 0; }
@@ -1339,7 +1521,10 @@
         }
     };
 
-    // dst: [gx,gy,...]
+    /**
+     * @param {matrix_t} src
+     * @param {matrix_t} dst [gx,gy,...]
+     */
     const scharr_derivatives = function(src, dst) {
         var w = src.cols, h = src.rows;
         var dstep = w<<1,x=0,y=0,x1=0,a,b,c,d,e,f;
@@ -1407,8 +1592,13 @@
         put_buffer(buf1_node);
     };
 
-    // compute gradient using Sobel kernel [1 2 1] * [-1 0 1]^T
-    // dst: [gx,gy,...]
+    /**
+     * compute gradient using Sobel kernel [1 2 1] * [-1 0 1]^T
+     * dst: [gx,gy,...]
+     *
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     */
     const sobel_derivatives = function(src, dst) {
         var w = src.cols, h = src.rows;
         var dstep = w<<1,x=0,y=0,x1=0,a,b,c,d,e,f;
@@ -1476,8 +1666,15 @@
         put_buffer(buf1_node);
     };
 
-    // please note: 
-    // dst_(type) size should be cols = src.cols+1, rows = src.rows+1
+    /**
+     * please note: 
+     * dst_(type) size should be cols = src.cols+1, rows = src.rows+1
+     * 
+     * @param {matrix_t} src
+     * @param {Data} dst_sum
+     * @param {Data} dst_sqsum
+     * @param {Data} dst_tilted 
+     */
     const compute_integral_image = function(src, dst_sum, dst_sqsum, dst_tilted) {
         var w0=src.cols|0,h0=src.rows|0,src_d=src.data;
         var w1=(w0+1)|0;
@@ -1583,6 +1780,10 @@
         }
     };
 
+    /**
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     */
     const equalize_histogram = function(src, dst) {
         var w=src.cols,h=src.rows,src_d=src.data;
 
@@ -1610,6 +1811,12 @@
         put_buffer(hist0_node);
     };
 
+    /**
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {number} low_thresh
+     * @param {number} high_thresh
+     */
     const canny = function(src, dst, low_thresh, high_thresh) {
         var w=src.cols,h=src.rows;
 
@@ -1764,7 +1971,7 @@
         row0 = 0;
         for(i = 0; i < h; ++i, map_i+=map_w) {
             for(j = 0; j < w; ++j) {
-                dst_d[row0++] = (map[map_i+j] == 2) * 0xff;
+                dst_d[row0++] = map[map_i+j] == 2 ? 0xff : 0;
             }
         }
 
@@ -1775,7 +1982,14 @@
         put_buffer(stack_node);
     };
 
-    // transform is 3x3 matrix_t
+    /**
+     * transform is 3x3 matrix_t
+     *
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {matrix_t} transform
+     * @param {number=} fill_value
+     */
     const warp_perspective = function(src, dst, transform, fill_value) {
         if (typeof fill_value === "undefined") { fill_value = 0; }
         var src_width=src.cols|0, src_height=src.rows|0, dst_width=dst.cols|0, dst_height=dst.rows|0;
@@ -1810,7 +2024,14 @@
         }
     };
 
-    // transform is 3x3 or 2x3 matrix_t only first 6 values referenced
+    /**
+     * transform is 3x3 or 2x3 matrix_t only first 6 values referenced
+     * 
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {matrix_t} transform
+     * @param {number=} fill_value
+     */
     const warp_affine = function(src, dst, transform, fill_value) {
         if (typeof fill_value === "undefined") { fill_value = 0; }
         var src_width=src.cols, src_height=src.rows, dst_width=dst.cols, dst_height=dst.rows;
@@ -1841,8 +2062,13 @@
         }
     };
 
-    // Basic RGB Skin detection filter
-    // from http://popscan.blogspot.fr/2012/08/skin-detection-in-digital-images.html
+    /**
+     * Basic RGB Skin detection filter
+     * from http://popscan.blogspot.fr/2012/08/skin-detection-in-digital-images.html
+     *
+     * @param {{ width: number, height: number, data: number[] }} src
+     * @param {Uint8Array} dst
+     */
     const skindetector = function(src,dst) {
         var r,g,b,j;
         var i = src.width*src.height;
@@ -1880,43 +2106,65 @@
         skindetector: skindetector
     });
 
-    function pyramid_t(levels) {
-        this.levels = levels|0;
-        this.data = new Array(levels);
-        this.pyrdown = pyrdown;
-    }
-
-    pyramid_t.prototype.allocate = function(start_w, start_h, data_type) {
-        var i = this.levels;
-        while(--i >= 0) {
-            this.data[i] = new matrix_t(start_w >> i, start_h >> i, data_type);
+    class pyramid_t {
+        /**
+         * @param {number} levels
+         */
+        constructor(levels) {
+            this.levels = levels|0;
+            this.data = new Array(levels);
+            this.pyrdown = pyrdown;
         }
-    };
 
-    pyramid_t.prototype.build = function(input, skip_first_level) {
-        if (typeof skip_first_level === "undefined") { skip_first_level = true; }
-        // just copy data to first level
-        var i = 2, a = input, b = this.data[0];
-        if(!skip_first_level) {
-            var j=input.cols*input.rows;
-            while(--j >= 0) {
-                b.data[j] = input.data[j];
+        /**
+         * @param {number} start_w
+         * @param {number} start_h
+         * @param {number} data_type
+         */
+        allocate(start_w, start_h, data_type) {
+            var i = this.levels;
+            while(--i >= 0) {
+                this.data[i] = new matrix_t(start_w >> i, start_h >> i, data_type);
             }
         }
-        b = this.data[1];
-        this.pyrdown(a, b);
-        for(; i < this.levels; ++i) {
-            a = b;
-            b = this.data[i];
+
+        /**
+         * @param {matrix_t} input
+         * @param {boolean=} skip_first_level
+         */
+        build(input, skip_first_level) {
+            if (typeof skip_first_level === "undefined") { skip_first_level = true; }
+            // just copy data to first level
+            var i = 2, a = input, b = this.data[0];
+            if(!skip_first_level) {
+                var j=input.cols*input.rows;
+                while(--j >= 0) {
+                    b.data[j] = input.data[j];
+                }
+            }
+            b = this.data[1];
             this.pyrdown(a, b);
+            for(; i < this.levels; ++i) {
+                a = b;
+                b = this.data[i];
+                this.pyrdown(a, b);
+            }
         }
-    };
+    }
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
      *
      */
 
+    /**
+     * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
+     */
+
+    /**
+     * @param {matrix_t} M
+     * @param {number=} value
+     */
     const identity = function(M, value) {
         if (typeof value === "undefined") { value=1; }
         var src=M.data;
@@ -1932,6 +2180,10 @@
         }
     };
 
+    /**
+     * @param {matrix_t} At
+     * @param {matrix_t} A
+     */
     const transpose = function(At, A) {
         var i=0,j=0,nrows=A.rows,ncols=A.cols;
         var Ai=0,Ati=0,pAt=0;
@@ -1943,7 +2195,13 @@
         }
     };
 
-    // C = A * B
+    /**
+     * C = A * B
+     *
+     * @param {matrix_t} C
+     * @param {matrix_t} A
+     * @param {matrix_t} B
+     */
     const multiply = function(C, A, B) {
         var i=0,j=0,k=0;
         var Ap=0,pA=0,pB=0,p_B=0,Cp=0;
@@ -1964,7 +2222,13 @@
         }
     };
 
-    // C = A * B'
+    /**
+     * C = A * B'
+     *
+     * @param {matrix_t} C
+     * @param {matrix_t} A
+     * @param {matrix_t} B
+     */
     const multiply_ABt = function(C, A, B) {
         var i=0,j=0,k=0;
         var Ap=0,pA=0,pB=0,Cp=0;
@@ -1984,7 +2248,13 @@
         }
     };
 
-    // C = A' * B
+    /**
+     * C = A' * B
+     *
+     * @param {matrix_t} C
+     * @param {matrix_t} A
+     * @param {matrix_t} B
+     */
     const multiply_AtB = function(C, A, B) {
         var i=0,j=0,k=0;
         var Ap=0,pA=0,pB=0,p_B=0,Cp=0;
@@ -2005,7 +2275,12 @@
         }
     };
 
-    // C = A * A'
+    /**
+     * C = A * A'
+     * 
+     * @param {matrix_t} C
+     * @param {matrix_t} A
+     */
     const multiply_AAt = function(C, A) {
         var i=0,j=0,k=0;
         var pCdiag=0,p_A=0,pA=0,pB=0,pC=0,pCt=0;
@@ -2029,7 +2304,12 @@
         }
     };
 
-    // C = A' * A
+    /**
+     * C = A' * A
+     *
+     * @param {matrix_t} C
+     * @param {matrix_t} A
+     */
     const multiply_AtA = function(C, A) {
         var i=0,j=0,k=0;
         var p_A=0,pA=0,pB=0,p_C=0,pC=0,p_CC=0;
@@ -2055,6 +2335,11 @@
     };
 
     // various small matrix operations
+
+    /**
+     * @param {matrix_t} M
+     * @param {number=} value
+     */
     const identity_3x3 = function(M, value) {
         if (typeof value === "undefined") { value=1; }
         var dt=M.data;
@@ -2063,6 +2348,10 @@
         dt[5] = dt[6] = dt[7] = 0;
     };
 
+    /**
+     * @param {matrix_t} from
+     * @param {matrix_t} to
+     */
     const invert_3x3 = function(from, to) {
         var A = from.data, invA = to.data;
         var t1 = A[4];
@@ -2093,7 +2382,13 @@
         invA[8] = (t9-t15)*t26;
     };
 
-    // C = A * B
+    /**
+     * C = A * B
+     *
+     * @param {matrix_t} C
+     * @param {matrix_t} A
+     * @param {matrix_t} B
+     */
     const multiply_3x3 = function(C, A, B) {
         var Cd=C.data, Ad=A.data, Bd=B.data;
         var m1_0 = Ad[0], m1_1 = Ad[1], m1_2 = Ad[2];
@@ -2115,6 +2410,9 @@
         Cd[8] = m1_6 * m2_2 + m1_7 * m2_5 + m1_8 * m2_8;
     };
 
+    /**
+     * @param {matrix_t} M
+     */
     const mat3x3_determinant = function(M) {
         var md=M.data;
         return  md[0] * md[4] * md[8] -
@@ -2125,12 +2423,23 @@
                 md[6] * md[2] * md[4];
     };
 
+    /**
+     * @param {number} M11
+     * @param {number} M12
+     * @param {number} M13
+     * @param {number} M21
+     * @param {number} M22
+     * @param {number} M23
+     * @param {number} M31
+     * @param {number} M32
+     * @param {number} M33
+     */
     const determinant_3x3 = function(M11, M12, M13, 
                                             M21, M22, M23, 
                                             M31, M32, M33) {
         return  M11 * M22 * M33 - M11 * M23 * M32 -
-                    M21 * M12 * M33 + M21 * M13 * M32 +
-                    M31 * M12 * M23 - M31 * M13 * M22;
+                M21 * M12 * M33 + M21 * M13 * M32 +
+                M31 * M12 * M23 - M31 * M13 * M22;
     };
 
     var jsfeat_mat_math = /*#__PURE__*/Object.freeze({
@@ -2154,12 +2463,26 @@
      *
      */
 
-    var swap = function(A, i0, i1, t) {
-        t = A[i0];
+    /**
+     * @typedef {import('./jsfeat_struct').Data} Data
+     */
+
+    /**
+     * @param {Data} A
+     * @param {number} i0
+     * @param {number} i1
+     */
+    var swap = function(A, i0, i1) {
+        const t = A[i0];
         A[i0] = A[i1];
         A[i1] = t;
     };
 
+    /**
+     * @param {number} a
+     * @param {number} b
+     * @returns {number}
+     */
     var hypot = function(a, b) {
         a = Math.abs(a);
         b = Math.abs(b);
@@ -2174,6 +2497,14 @@
         return 0.0;
     };
 
+    /**
+     * @param {Data} A
+     * @param {number} astep
+     * @param {Data} W
+     * @param {Data=} V
+     * @param {number} vstep
+     * @param {number} n
+     */
     var JacobiImpl = function(A, astep, W, V, vstep, n) {
         var eps = EPSILON;
         var i=0,j=0,k=0,m=0,l=0,idx=0,_in=0,_in2=0;
@@ -2313,10 +2644,10 @@
                     m = i;
             }
             if(k != m) {
-                swap(W, m, k, mv);
+                swap(W, m, k);
                 if(V) {
                     for(i = 0; i < n; i++) {
-                        swap(V, vstep*m + i, vstep*k + i, mv);
+                        swap(V, vstep*m + i, vstep*k + i);
                     }
                 }
             }
@@ -2327,6 +2658,16 @@
         put_buffer(indC_buff);
     };
 
+    /**
+     * @param {Data} At
+     * @param {number} astep
+     * @param {Data} _W
+     * @param {Data=} Vt
+     * @param {number} vstep
+     * @param {number} m
+     * @param {number} n
+     * @param {number} n1
+     */
     var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
         var eps = EPSILON * 2.0;
         var minval = FLT_MIN;
@@ -2447,14 +2788,14 @@
                     j = k;
             }
             if(i != j) {
-                swap(W, i, j, sd);
+                swap(W, i, j);
                 if(Vt) {
                     for(k = 0; k < m; k++) {
-                        swap(At, i*astep + k, j*astep + k, t);
+                        swap(At, i*astep + k, j*astep + k);
                     }
                     
                     for(k = 0; k < n; k++) {
-                        swap(Vt, i*vstep + k, j*vstep + k, t);
+                        swap(Vt, i*vstep + k, j*vstep + k);
                     }
                 }
             }
@@ -2519,10 +2860,15 @@
     };
 
 
+    /**
+     * @param {matrix_t} A
+     * @param {matrix_t} B
+     * @returns {number}
+     */
     const lu_solve = function(A, B) {
         var i=0,j=0,k=0,astep=A.cols;
         var ad=A.data, bd=B.data;
-        var t,alpha,d,s;
+        var alpha,d,s;
 
         for(i = 0; i < astep; i++) {
             k = i;                    
@@ -2538,10 +2884,10 @@
             
             if(k != i) {
                 for(j = i; j < astep; j++ ) {
-                    swap(ad, i*astep+j, k*astep+j, t);
+                    swap(ad, i*astep+j, k*astep+j);
                 }
                 
-                swap(bd, i, k, t);
+                swap(bd, i, k);
             }
             
             d = -1.0/ad[i*astep+i];
@@ -2570,6 +2916,11 @@
         return 1; // OK
     };
 
+    /**
+     * @param {matrix_t} A
+     * @param {matrix_t} B
+     * @returns {number}
+     */
     const cholesky_solve = function(A, B) {
         var col=0,row=0,col2=0,cs=0,rs=0,i=0,j=0;
         var size = A.cols;
@@ -2636,6 +2987,13 @@
         return 1;
     };
 
+    /**
+     * @param {matrix_t} A
+     * @param {matrix_t} W
+     * @param {matrix_t} U
+     * @param {matrix_t} V
+     * @param {number=} options
+     */
     const svd_decompose = function(A, W, U, V, options) {
         if (typeof options === "undefined") { options = 0; }
         var at=0,i=0,_m=A.rows,_n=A.cols,m=_m,n=_n;
@@ -2723,6 +3081,11 @@
 
     };
 
+    /**
+     * @param {matrix_t} A
+     * @param {matrix_t} X
+     * @param {matrix_t} B
+     */
     const svd_solve = function(A, X, B) {
         var i=0,j=0,k=0;
         var pu=0,pv=0;
@@ -2740,7 +3103,7 @@
 
         var bd = B.data, ud = u_mt.data, wd = w_mt.data, vd = v_mt.data;
 
-        this.svd_decompose(A, w_mt, u_mt, v_mt, 0);
+        svd_decompose(A, w_mt, u_mt, v_mt, 0);
 
         tol = EPSILON * wd[0] * ncols;
 
@@ -2762,6 +3125,10 @@
         put_buffer(v_buff);
     };
 
+    /**
+     * @param {matrix_t} Ai
+     * @param {matrix_t} A
+     */
     const svd_invert = function(Ai, A) {
         var i=0,j=0,k=0;
         var pu=0,pv=0,pa=0;
@@ -2779,7 +3146,7 @@
 
         var id = Ai.data, ud = u_mt.data, wd = w_mt.data, vd = v_mt.data;
 
-        this.svd_decompose(A, w_mt, u_mt, v_mt, 0);
+        svd_decompose(A, w_mt, u_mt, v_mt, 0);
 
         tol = EPSILON * wd[0] * ncols;
 
@@ -2797,6 +3164,11 @@
         put_buffer(v_buff);
     };
 
+    /**
+     * @param {matrix_t} A
+     * @param {matrix_t=} vects
+     * @param {matrix_t=} vals
+     */
     const eigenVV = function(A, vects, vals) {
         var n=A.cols,i=n*n;
         var dt = A.type | C1_t;
@@ -2810,7 +3182,7 @@
             a_mt.data[i] = A.data[i];
         }
 
-        JacobiImpl(a_mt.data, n, w_mt.data, vects ? vects.data : null, n, n);
+        JacobiImpl(a_mt.data, n, w_mt.data, vects ? vects.data : undefined, n, n);
 
         if(vals) {
             while(--n >= 0) {
@@ -2832,6 +3204,24 @@
         eigenVV: eigenVV
     });
 
+    /**
+     * @typedef {import('../jsfeat').ransac_params_t} ransac_params_t
+     * @typedef {import('../jsfeat').Point} Point
+     * @typedef {import('../jsfeat_struct').Data} Data
+     * @typedef {import('./motion_model').MotionModelKernel} MotionModelKernel
+     */
+
+    /**
+     * 
+     * @param {MotionModelKernel} kernel
+     * @param {Point[]} from
+     * @param {Point[]} to
+     * @param {number} need_cnt
+     * @param {number} max_cnt
+     * @param {Point[]} from_sub
+     * @param {Point[]} to_sub
+     * @returns {boolean}
+     */
     var get_subset = function(kernel, from, to, need_cnt, max_cnt, from_sub, to_sub) {
         var max_try = 1000;
         var indices = [];
@@ -2863,6 +3253,17 @@
         return (i == need_cnt && ssiter < max_try);
     };
 
+    /**
+     * @param {MotionModelKernel} kernel
+     * @param {matrix_t} model
+     * @param {Point[]} from
+     * @param {Point[]} to
+     * @param {number} count
+     * @param {number} thresh
+     * @param {Data} err
+     * @param {Data} mask
+     * @returns {number}
+     */
     var find_inliers = function(kernel, model, from, to, count, thresh, err, mask) {
         var numinliers = 0, i=0, f=0;
         var t = thresh*thresh;
@@ -2870,13 +3271,24 @@
         kernel.error(from, to, model, err, count);
 
         for(; i < count; ++i) {
-            f = err[i] <= t;
+            f = err[i] <= t ? 1 : 0;
             mask[i] = f;
             numinliers += f;
         }
         return numinliers;
     };
 
+    /**
+     * @param {ransac_params_t} params
+     * @param {MotionModelKernel} kernel
+     * @param {Point[]} from
+     * @param {Point[]} to
+     * @param {number} count
+     * @param {matrix_t} model
+     * @param {matrix_t} mask
+     * @param {number=} max_iters
+     * @returns {boolean}
+     */
     const ransac = function(params, kernel, from, to, count, model, mask, max_iters) {
         if (typeof max_iters === "undefined") { max_iters=1000; }
 
@@ -2886,8 +3298,8 @@
         var niters = max_iters, iter=0;
         var result = false;
 
-        var subset0 = [];
-        var subset1 = [];
+        var subset0 = /** @type {import('../jsfeat').Point[]} */([]);
+        var subset1 = /** @type {import('../jsfeat').Point[]} */([]);
         var found = false;
 
         var mc=model.cols,mr=model.rows;
@@ -2962,6 +3374,16 @@
         return result;
     };
 
+    /**
+     * @param {ransac_params_t} params
+     * @param {MotionModelKernel} kernel
+     * @param {Point[]} from
+     * @param {Point[]} to
+     * @param {number} count
+     * @param {matrix_t} model
+     * @param {matrix_t} mask
+     * @param {number=} max_iters
+     */
     const lmeds = function(params, kernel, from, to, count, model, mask, max_iters) {
         if (typeof max_iters === "undefined") { max_iters=1000; }
 
@@ -2971,8 +3393,8 @@
         var niters = max_iters, iter=0;
         var result = false;
 
-        var subset0 = [];
-        var subset1 = [];
+        var subset0 = /** @type {import('../jsfeat').Point[]} */([]);
+        var subset1 = /** @type {import('../jsfeat').Point[]} */([]);
         var found = false;
 
         var mc=model.cols,mr=model.rows;
@@ -3066,11 +3488,28 @@
         lmeds: lmeds
     });
 
+    /**
+     * @typedef {import('../jsfeat').Point} Point
+     * @typedef {import('../jsfeat_struct').Data} Data
+     */
+
+    /**
+     * @param {number} x
+     * @returns {number}
+     */
     var sqr = function(x) {
         return x*x;
     };
 
-    // does isotropic normalization
+    /**
+     * does isotropic normalization
+     * 
+     * @param {Point[]} from
+     * @param {Point[]} to
+     * @param {Data} T0
+     * @param {Data} T1
+     * @param {number} count
+     */
     var iso_normalize_points = function(from, to, T0, T1, count) {
         var i=0;
         var cx0=0.0, cy0=0.0, d0=0.0, s0=0.0;
@@ -3118,303 +3557,358 @@
     var AtA = new matrix_t(6, 6, F32_t|C1_t);
     var AtB = new matrix_t(6, 1, F32_t|C1_t);
 
-    function affine2d() {
-        // empty constructor
+    /**
+     * @typedef {(from: import('../jsfeat').Point[], to: import('../jsfeat').Point[], model: matrix_t, count: number) => number} MotionModelKernelRun
+     */
+
+    /**
+     * @typedef {(from: import('../jsfeat').Point[], to: import('../jsfeat').Point[], model: matrix_t, err: import('../jsfeat_struct').Data, count: number) => void} MotionModelKernelError
+     */
+
+    /**
+     * @typedef {(from: import('../jsfeat').Point[], to: import('../jsfeat').Point[], count: number) => boolean} MotionModelKernelCheckSubset
+     */
+
+    /**
+     * @typedef {object} MotionModelKernel
+     * @property {MotionModelKernelRun} run
+     * @property {MotionModelKernelError} error
+     * @property {MotionModelKernelCheckSubset} check_subset
+     */
+
+    /**
+     * @implements {MotionModelKernel}
+     */
+    class affine2d {
+        constructor() {
+        }
+
+        /**
+         * @param {Point[]} from
+         * @param {Point[]} to
+         * @param {matrix_t} model
+         * @param {number} count
+         * @returns {number}
+         */
+        run(from, to, model, count) {
+            var i=0,j=0;
+            var dt=model.type|C1_t;
+            var md=model.data, t0d=T0.data, t1d=T1.data;
+            var pt0,pt1,px=0.0,py=0.0;
+
+            iso_normalize_points(from, to, t0d, t1d, count);
+
+            var a_buff = get_buffer((2*count*6)<<3);
+            var b_buff = get_buffer((2*count)<<3);
+
+            var a_mt = new matrix_t(6, 2*count, dt, a_buff.data);
+            var b_mt = new matrix_t(1, 2*count, dt, b_buff.data);
+            var ad=a_mt.data, bd=b_mt.data;
+
+            for (; i < count; ++i) {
+                pt0 = from[i];
+                pt1 = to[i];
+
+                px = t0d[0]*pt0.x + t0d[1]*pt0.y + t0d[2];
+                py = t0d[3]*pt0.x + t0d[4]*pt0.y + t0d[5];
+
+                j = i*2*6;
+                ad[j]=px, ad[j+1]=py, ad[j+2]=1.0, ad[j+3]=0.0, ad[j+4]=0.0, ad[j+5]=0.0;
+
+                j += 6;
+                ad[j]=0.0, ad[j+1]=0.0, ad[j+2]=0.0, ad[j+3]=px, ad[j+4]=py, ad[j+5]=1.0;
+
+                bd[i<<1] = t1d[0]*pt1.x + t1d[1]*pt1.y + t1d[2];
+                bd[(i<<1)+1] = t1d[3]*pt1.x + t1d[4]*pt1.y + t1d[5];
+            }
+
+            multiply_AtA(AtA, a_mt);
+            multiply_AtB(AtB, a_mt, b_mt);
+
+            lu_solve(AtA, AtB);
+
+            md[0] = AtB.data[0], md[1]=AtB.data[1], md[2]=AtB.data[2];
+            md[3] = AtB.data[3], md[4]=AtB.data[4], md[5]=AtB.data[5];
+            md[6] = 0.0, md[7] = 0.0, md[8] = 1.0; // fill last row
+
+            // denormalize
+            invert_3x3(T1, T1);
+            multiply_3x3(model, T1, model);
+            multiply_3x3(model, model, T0);
+
+            // free buffer
+            put_buffer(a_buff);
+            put_buffer(b_buff);
+
+            return 1;
+        }
+
+        /**
+         * 
+         * @param {Point[]} from
+         * @param {Point[]} to
+         * @param {matrix_t} model
+         * @param {Float32Array} err
+         * @param {number} count
+         */
+        error(from, to, model, err, count) {
+            var i=0;
+            var pt0,pt1;
+            var m=model.data;
+
+            for (; i < count; ++i) {
+                pt0 = from[i];
+                pt1 = to[i];
+
+                err[i] = sqr(pt1.x - m[0]*pt0.x - m[1]*pt0.y - m[2]) +
+                         sqr(pt1.y - m[3]*pt0.x - m[4]*pt0.y - m[5]);
+            }
+        }
+
+        check_subset() {
+            return true;
+        }
     }
-
-    affine2d.prototype.run = function(from, to, model, count) {
-        var i=0,j=0;
-        var dt=model.type|C1_t;
-        var md=model.data, t0d=T0.data, t1d=T1.data;
-        var pt0,pt1,px=0.0,py=0.0;
-
-        iso_normalize_points(from, to, t0d, t1d, count);
-
-        var a_buff = get_buffer((2*count*6)<<3);
-        var b_buff = get_buffer((2*count)<<3);
-
-        var a_mt = new matrix_t(6, 2*count, dt, a_buff.data);
-        var b_mt = new matrix_t(1, 2*count, dt, b_buff.data);
-        var ad=a_mt.data, bd=b_mt.data;
-
-        for (; i < count; ++i) {
-            pt0 = from[i];
-            pt1 = to[i];
-
-            px = t0d[0]*pt0.x + t0d[1]*pt0.y + t0d[2];
-            py = t0d[3]*pt0.x + t0d[4]*pt0.y + t0d[5];
-
-            j = i*2*6;
-            ad[j]=px, ad[j+1]=py, ad[j+2]=1.0, ad[j+3]=0.0, ad[j+4]=0.0, ad[j+5]=0.0;
-
-            j += 6;
-            ad[j]=0.0, ad[j+1]=0.0, ad[j+2]=0.0, ad[j+3]=px, ad[j+4]=py, ad[j+5]=1.0;
-
-            bd[i<<1] = t1d[0]*pt1.x + t1d[1]*pt1.y + t1d[2];
-            bd[(i<<1)+1] = t1d[3]*pt1.x + t1d[4]*pt1.y + t1d[5];
-        }
-
-        multiply_AtA(AtA, a_mt);
-        multiply_AtB(AtB, a_mt, b_mt);
-
-        lu_solve(AtA, AtB);
-
-        md[0] = AtB.data[0], md[1]=AtB.data[1], md[2]=AtB.data[2];
-        md[3] = AtB.data[3], md[4]=AtB.data[4], md[5]=AtB.data[5];
-        md[6] = 0.0, md[7] = 0.0, md[8] = 1.0; // fill last row
-
-        // denormalize
-        invert_3x3(T1, T1);
-        multiply_3x3(model, T1, model);
-        multiply_3x3(model, model, T0);
-
-        // free buffer
-        put_buffer(a_buff);
-        put_buffer(b_buff);
-
-        return 1;
-    };
-
-    affine2d.prototype.error = function(from, to, model, err, count) {
-        var i=0;
-        var pt0,pt1;
-        var m=model.data;
-
-        for (; i < count; ++i) {
-            pt0 = from[i];
-            pt1 = to[i];
-
-            err[i] = sqr(pt1.x - m[0]*pt0.x - m[1]*pt0.y - m[2]) +
-                        sqr(pt1.y - m[3]*pt0.x - m[4]*pt0.y - m[5]);
-        }
-    };
-
-    affine2d.prototype.check_subset = function() {
-        return true; // all good
-    };
 
     var mLtL = new matrix_t(9, 9, F32_t|C1_t);
     var Evec = new matrix_t(9, 9, F32_t|C1_t);
 
-    function homography2d() {
-        // empty constructor
-        //this.T0 = new matrix_t(3, 3, F32_t|C1_t);
-        //this.T1 = new matrix_t(3, 3, F32_t|C1_t);
-        //this.mLtL = new matrix_t(9, 9, F32_t|C1_t);
-        //this.Evec = new matrix_t(9, 9, F32_t|C1_t);
-    }
-
-    homography2d.prototype.run = function(from, to, model, count) {
-        var i=0,j=0;
-        var md=model.data, t0d=T0.data, t1d=T1.data;
-        var LtL=mLtL.data, evd=Evec.data;
-        var x=0.0,y=0.0,X=0.0,Y=0.0;
-
-        // norm
-        var smx=0.0, smy=0.0, cmx=0.0, cmy=0.0, sMx=0.0, sMy=0.0, cMx=0.0, cMy=0.0;
-
-        for(; i < count; ++i) {
-            cmx += to[i].x;
-            cmy += to[i].y;
-            cMx += from[i].x;
-            cMy += from[i].y;
+    class homography2d {
+        constructor() {
         }
 
-        cmx /= count; cmy /= count;
-        cMx /= count; cMy /= count;
+        /**
+         * @param {Point[]} from
+         * @param {Point[]} to
+         * @param {matrix_t} model
+         * @param {number} count
+         * @returns {number}
+         */
+        run(from, to, model, count) {
+            var i=0,j=0;
+            var md=model.data, t0d=T0.data, t1d=T1.data;
+            var LtL=mLtL.data, evd=Evec.data;
+            var x=0.0,y=0.0,X=0.0,Y=0.0;
 
-        for(i = 0; i < count; ++i)
-        {
-            smx += Math.abs(to[i].x - cmx);
-            smy += Math.abs(to[i].y - cmy);
-            sMx += Math.abs(from[i].x - cMx);
-            sMy += Math.abs(from[i].y - cMy);
+            // norm
+            var smx=0.0, smy=0.0, cmx=0.0, cmy=0.0, sMx=0.0, sMy=0.0, cMx=0.0, cMy=0.0;
+
+            for(; i < count; ++i) {
+                cmx += to[i].x;
+                cmy += to[i].y;
+                cMx += from[i].x;
+                cMy += from[i].y;
+            }
+
+            cmx /= count; cmy /= count;
+            cMx /= count; cMy /= count;
+
+            for(i = 0; i < count; ++i)
+            {
+                smx += Math.abs(to[i].x - cmx);
+                smy += Math.abs(to[i].y - cmy);
+                sMx += Math.abs(from[i].x - cMx);
+                sMy += Math.abs(from[i].y - cMy);
+            }
+
+            if( Math.abs(smx) < EPSILON 
+                || Math.abs(smy) < EPSILON 
+                || Math.abs(sMx) < EPSILON 
+                || Math.abs(sMy) < EPSILON ) return 0;
+
+            smx = count/smx; smy = count/smy;
+            sMx = count/sMx; sMy = count/sMy;
+
+            t0d[0] = sMx; 	t0d[1] = 0; 	t0d[2] = -cMx*sMx; 
+            t0d[3] = 0; 	t0d[4] = sMy; 	t0d[5] = -cMy*sMy; 
+            t0d[6] = 0; 	t0d[7] = 0; 	t0d[8] = 1;
+
+            t1d[0] = 1.0/smx; 	t1d[1] = 0; 		t1d[2] = cmx;
+            t1d[3] = 0; 		t1d[4] = 1.0/smy; 	t1d[5] = cmy;
+            t1d[6] = 0; 		t1d[7] = 0; 		t1d[8] = 1;
+            //
+
+            // construct system
+            i = 81;
+            while(--i >= 0) {
+                LtL[i] = 0.0;
+            }
+            for(i = 0; i < count; ++i) {
+                x = (to[i].x - cmx) * smx;
+                y = (to[i].y - cmy) * smy;
+                X = (from[i].x - cMx) * sMx;
+                Y = (from[i].y - cMy) * sMy;
+
+                LtL[0] += X*X;
+                LtL[1] += X*Y;
+                LtL[2] += X;
+
+                LtL[6] += X*-x*X;
+                LtL[7] += X*-x*Y;
+                LtL[8] += X*-x;
+                LtL[10] += Y*Y;
+                LtL[11] += Y;
+
+                LtL[15] += Y*-x*X;
+                LtL[16] += Y*-x*Y;
+                LtL[17] += Y*-x;
+                LtL[20] += 1.0;
+
+                LtL[24] += -x*X;
+                LtL[25] += -x*Y;
+                LtL[26] += -x;
+                LtL[30] += X*X;
+                LtL[31] += X*Y;
+                LtL[32] += X;
+                LtL[33] += X*-y*X;
+                LtL[34] += X*-y*Y;
+                LtL[35] += X*-y;
+                LtL[40] += Y*Y;
+                LtL[41] += Y;
+                LtL[42] += Y*-y*X;
+                LtL[43] += Y*-y*Y;
+                LtL[44] += Y*-y;
+                LtL[50] += 1.0;
+                LtL[51] += -y*X;
+                LtL[52] += -y*Y;
+                LtL[53] += -y;
+                LtL[60] += -x*X*-x*X + -y*X*-y*X;
+                LtL[61] += -x*X*-x*Y + -y*X*-y*Y;
+                LtL[62] += -x*X*-x + -y*X*-y;
+                LtL[70] += -x*Y*-x*Y + -y*Y*-y*Y;
+                LtL[71] += -x*Y*-x + -y*Y*-y;
+                LtL[80] += -x*-x + -y*-y;
+            }
+            //
+
+            // symmetry
+            for(i = 0; i < 9; ++i) {
+                for(j = 0; j < i; ++j)
+                    LtL[i*9+j] = LtL[j*9+i];
+            }
+
+            eigenVV(mLtL, Evec);
+
+            md[0]=evd[72], md[1]=evd[73], md[2]=evd[74];
+            md[3]=evd[75], md[4]=evd[76], md[5]=evd[77];
+            md[6]=evd[78], md[7]=evd[79], md[8]=evd[80];
+
+            // denormalize
+            multiply_3x3(model, T1, model);
+            multiply_3x3(model, model, T0);
+
+            // set bottom right to 1.0
+            x = 1.0/md[8];
+            md[0] *= x; md[1] *= x; md[2] *= x;
+            md[3] *= x; md[4] *= x; md[5] *= x;
+            md[6] *= x; md[7] *= x; md[8] = 1.0;
+
+            return 1;
         }
 
-        if( Math.abs(smx) < EPSILON 
-            || Math.abs(smy) < EPSILON 
-            || Math.abs(sMx) < EPSILON 
-            || Math.abs(sMy) < EPSILON ) return 0;
+        /**
+         * @param {Point[]} from
+         * @param {Point[]} to
+         * @param {matrix_t} model
+         * @param {Float32Array} err
+         * @param {number} count
+         */
+        error(from, to, model, err, count) {
+            var i=0;
+            var pt0,pt1,ww=0.0,dx=0.0,dy=0.0;
+            var m=model.data;
 
-        smx = count/smx; smy = count/smy;
-        sMx = count/sMx; sMy = count/sMy;
+            for (; i < count; ++i) {
+                pt0 = from[i];
+                pt1 = to[i];
 
-        t0d[0] = sMx; 	t0d[1] = 0; 	t0d[2] = -cMx*sMx; 
-        t0d[3] = 0; 	t0d[4] = sMy; 	t0d[5] = -cMy*sMy; 
-        t0d[6] = 0; 	t0d[7] = 0; 	t0d[8] = 1;
-
-        t1d[0] = 1.0/smx; 	t1d[1] = 0; 		t1d[2] = cmx;
-        t1d[3] = 0; 		t1d[4] = 1.0/smy; 	t1d[5] = cmy;
-        t1d[6] = 0; 		t1d[7] = 0; 		t1d[8] = 1;
-        //
-
-        // construct system
-        i = 81;
-        while(--i >= 0) {
-            LtL[i] = 0.0;
-        }
-        for(i = 0; i < count; ++i) {
-            x = (to[i].x - cmx) * smx;
-            y = (to[i].y - cmy) * smy;
-            X = (from[i].x - cMx) * sMx;
-            Y = (from[i].y - cMy) * sMy;
-
-            LtL[0] += X*X;
-            LtL[1] += X*Y;
-            LtL[2] += X;
-
-            LtL[6] += X*-x*X;
-            LtL[7] += X*-x*Y;
-            LtL[8] += X*-x;
-            LtL[10] += Y*Y;
-            LtL[11] += Y;
-
-            LtL[15] += Y*-x*X;
-            LtL[16] += Y*-x*Y;
-            LtL[17] += Y*-x;
-            LtL[20] += 1.0;
-
-            LtL[24] += -x*X;
-            LtL[25] += -x*Y;
-            LtL[26] += -x;
-            LtL[30] += X*X;
-            LtL[31] += X*Y;
-            LtL[32] += X;
-            LtL[33] += X*-y*X;
-            LtL[34] += X*-y*Y;
-            LtL[35] += X*-y;
-            LtL[40] += Y*Y;
-            LtL[41] += Y;
-            LtL[42] += Y*-y*X;
-            LtL[43] += Y*-y*Y;
-            LtL[44] += Y*-y;
-            LtL[50] += 1.0;
-            LtL[51] += -y*X;
-            LtL[52] += -y*Y;
-            LtL[53] += -y;
-            LtL[60] += -x*X*-x*X + -y*X*-y*X;
-            LtL[61] += -x*X*-x*Y + -y*X*-y*Y;
-            LtL[62] += -x*X*-x + -y*X*-y;
-            LtL[70] += -x*Y*-x*Y + -y*Y*-y*Y;
-            LtL[71] += -x*Y*-x + -y*Y*-y;
-            LtL[80] += -x*-x + -y*-y;
-        }
-        //
-
-        // symmetry
-        for(i = 0; i < 9; ++i) {
-            for(j = 0; j < i; ++j)
-                LtL[i*9+j] = LtL[j*9+i];
-        }
-
-        eigenVV(mLtL, Evec);
-
-        md[0]=evd[72], md[1]=evd[73], md[2]=evd[74];
-        md[3]=evd[75], md[4]=evd[76], md[5]=evd[77];
-        md[6]=evd[78], md[7]=evd[79], md[8]=evd[80];
-
-        // denormalize
-        multiply_3x3(model, T1, model);
-        multiply_3x3(model, model, T0);
-
-        // set bottom right to 1.0
-        x = 1.0/md[8];
-        md[0] *= x; md[1] *= x; md[2] *= x;
-        md[3] *= x; md[4] *= x; md[5] *= x;
-        md[6] *= x; md[7] *= x; md[8] = 1.0;
-
-        return 1;
-    };
-
-    homography2d.prototype.error = function(from, to, model, err, count) {
-        var i=0;
-        var pt0,pt1,ww=0.0,dx=0.0,dy=0.0;
-        var m=model.data;
-
-        for (; i < count; ++i) {
-            pt0 = from[i];
-            pt1 = to[i];
-
-            ww = 1.0/(m[6]*pt0.x + m[7]*pt0.y + 1.0);
-            dx = (m[0]*pt0.x + m[1]*pt0.y + m[2])*ww - pt1.x;
-            dy = (m[3]*pt0.x + m[4]*pt0.y + m[5])*ww - pt1.y;
-            err[i] = (dx*dx + dy*dy);
-        }
-    };
-
-    homography2d.prototype.check_subset = function(from, to, count) {
-        // seems to reject good subsets actually
-        //if( have_collinear_points(from, count) || have_collinear_points(to, count) ) {
-            //return false;
-        //}
-        if( count == 4 ) {
-            var negative = 0;
-
-            var fp0=from[0],fp1=from[1],fp2=from[2],fp3=from[3];
-            var tp0=to[0],tp1=to[1],tp2=to[2],tp3=to[3];
-
-            // set1
-            var A11=fp0.x, A12=fp0.y, A13=1.0;
-            var A21=fp1.x, A22=fp1.y, A23=1.0;
-            var A31=fp2.x, A32=fp2.y, A33=1.0;
-
-            var B11=tp0.x, B12=tp0.y, B13=1.0;
-            var B21=tp1.x, B22=tp1.y, B23=1.0;
-            var B31=tp2.x, B32=tp2.y, B33=1.0;
-
-            var detA = determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-            var detB = determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
-
-            if(detA*detB < 0) negative++;
-
-            // set2
-            A11=fp1.x, A12=fp1.y;
-            A21=fp2.x, A22=fp2.y;
-            A31=fp3.x, A32=fp3.y;
-
-            B11=tp1.x, B12=tp1.y;
-            B21=tp2.x, B22=tp2.y;
-            B31=tp3.x, B32=tp3.y;
-
-            detA = determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-            detB = determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
-
-            if(detA*detB < 0) negative++;
-
-            // set3
-            A11=fp0.x, A12=fp0.y;
-            A21=fp2.x, A22=fp2.y;
-            A31=fp3.x, A32=fp3.y;
-
-            B11=tp0.x, B12=tp0.y;
-            B21=tp2.x, B22=tp2.y;
-            B31=tp3.x, B32=tp3.y;
-
-            detA = determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-            detB = determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
-
-            if(detA*detB < 0) negative++;
-
-            // set4
-            A11=fp0.x, A12=fp0.y;
-            A21=fp1.x, A22=fp1.y;
-            A31=fp3.x, A32=fp3.y;
-
-            B11=tp0.x, B12=tp0.y;
-            B21=tp1.x, B22=tp1.y;
-            B31=tp3.x, B32=tp3.y;
-
-            detA = determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
-            detB = determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
-
-            if(detA*detB < 0) negative++;
-
-            if(negative != 0 && negative != 4) {
-                return false;
+                ww = 1.0/(m[6]*pt0.x + m[7]*pt0.y + 1.0);
+                dx = (m[0]*pt0.x + m[1]*pt0.y + m[2])*ww - pt1.x;
+                dy = (m[3]*pt0.x + m[4]*pt0.y + m[5])*ww - pt1.y;
+                err[i] = (dx*dx + dy*dy);
             }
         }
-        return true; // all good
-    };
+
+        /**
+         * @param {Point[]} from
+         * @param {Point[]} to
+         * @param {number} count
+         * @returns {boolean}
+         */
+        check_subset(from, to, count) {
+            // seems to reject good subsets actually
+            //if( have_collinear_points(from, count) || have_collinear_points(to, count) ) {
+                //return false;
+            //}
+            if( count == 4 ) {
+                var negative = 0;
+
+                var fp0=from[0],fp1=from[1],fp2=from[2],fp3=from[3];
+                var tp0=to[0],tp1=to[1],tp2=to[2],tp3=to[3];
+
+                // set1
+                var A11=fp0.x, A12=fp0.y, A13=1.0;
+                var A21=fp1.x, A22=fp1.y, A23=1.0;
+                var A31=fp2.x, A32=fp2.y, A33=1.0;
+
+                var B11=tp0.x, B12=tp0.y, B13=1.0;
+                var B21=tp1.x, B22=tp1.y, B23=1.0;
+                var B31=tp2.x, B32=tp2.y, B33=1.0;
+
+                var detA = determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+                var detB = determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+
+                if(detA*detB < 0) negative++;
+
+                // set2
+                A11=fp1.x, A12=fp1.y;
+                A21=fp2.x, A22=fp2.y;
+                A31=fp3.x, A32=fp3.y;
+
+                B11=tp1.x, B12=tp1.y;
+                B21=tp2.x, B22=tp2.y;
+                B31=tp3.x, B32=tp3.y;
+
+                detA = determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+                detB = determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+
+                if(detA*detB < 0) negative++;
+
+                // set3
+                A11=fp0.x, A12=fp0.y;
+                A21=fp2.x, A22=fp2.y;
+                A31=fp3.x, A32=fp3.y;
+
+                B11=tp0.x, B12=tp0.y;
+                B21=tp2.x, B22=tp2.y;
+                B31=tp3.x, B32=tp3.y;
+
+                detA = determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+                detB = determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+
+                if(detA*detB < 0) negative++;
+
+                // set4
+                A11=fp0.x, A12=fp0.y;
+                A21=fp1.x, A22=fp1.y;
+                A31=fp3.x, A32=fp3.y;
+
+                B11=tp0.x, B12=tp0.y;
+                B21=tp1.x, B22=tp1.y;
+                B31=tp3.x, B32=tp3.y;
+
+                detA = determinant_3x3(A11,A12,A13, A21,A22,A23, A31,A32,A33);
+                detB = determinant_3x3(B11,B12,B13, B21,B22,B23, B31,B32,B33);
+
+                if(detA*detB < 0) negative++;
+
+                if(negative != 0 && negative != 4) {
+                    return false;
+                }
+            }
+            return true; // all good
+        }
+    }
 
     var motion_model = /*#__PURE__*/Object.freeze({
         __proto__: null,
@@ -3426,32 +3920,46 @@
      * @author Eugene Zatepyakin / http://inspirit.ru/
      *
      */
-    function ransac_params_t(size, thresh, eps, prob) {
-        if (typeof size === "undefined") { size=0; }
-        if (typeof thresh === "undefined") { thresh=0.5; }
-        if (typeof eps === "undefined") { eps=0.5; }
-        if (typeof prob === "undefined") { prob=0.99; }
+    class ransac_params_t {
+        /**
+         * @param {number=} size
+         * @param {number=} thresh
+         * @param {number=} eps
+         * @param {number=} prob
+         */
+        constructor(size, thresh, eps, prob) {
+            if (typeof size === "undefined") { size=0; }
+            if (typeof thresh === "undefined") { thresh=0.5; }
+            if (typeof eps === "undefined") { eps=0.5; }
+            if (typeof prob === "undefined") { prob=0.99; }
 
-        this.size = size;
-        this.thresh = thresh;
-        this.eps = eps;
-        this.prob = prob;
+            this.size = size;
+            this.thresh = thresh;
+            this.eps = eps;
+            this.prob = prob;
+        }
+
+        /**
+         * @param {number} _eps
+         * @param {number} max_iters
+         */
+        update_iters(_eps, max_iters) {
+            var num = Math.log(1 - this.prob);
+            var denom = Math.log(1 - Math.pow(1 - _eps, this.size));
+            return (denom >= 0 || -num >= max_iters*(-denom) ? max_iters : Math.round(num/denom))|0;
+        }
     }
-    ransac_params_t.prototype.update_iters = function(_eps, max_iters) {
-        var num = Math.log(1 - this.prob);
-        var denom = Math.log(1 - Math.pow(1 - _eps, this.size));
-        return (denom >= 0 || -num >= max_iters*(-denom) ? max_iters : Math.round(num/denom))|0;
-    };
-
-    var ransac_params_t$1 = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        ransac_params_t: ransac_params_t
-    });
 
     /**
      * @author Eugene Zatepyakin / http://inspirit.ru/
      *
      * This is FAST corner detector, contributed to OpenCV by the author, Edward Rosten.
+     */
+
+    /**
+     * @typedef {import('./jsfeat').Point} Point
+     * @typedef {import('./jsfeat_struct').Data} Data
+     * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
      */
 
     /*
@@ -3469,6 +3977,12 @@
     var score_diff = new Int32Array(25);
 
     // private functions
+
+    /**
+     * @param {Data} pixel
+     * @param {number} step
+     * @param {number} pattern_size
+     */
     var _cmp_offsets = function(pixel, step, pattern_size) {
         var k = 0;
         var offsets = offsets16;
@@ -3478,9 +3992,17 @@
         for( ; k < 25; ++k ) {
             pixel[k] = pixel[k - pattern_size];
         }
-    },
+    };
 
-    _cmp_score_16 = function(src, off, pixel, d, threshold) {
+    /**
+     * @param {Data} src
+     * @param {number} off
+     * @param {Data} pixel
+     * @param {Data} d
+     * @param {number} threshold
+     * @returns {number}
+     */
+    var _cmp_score_16 = function(src, off, pixel, d, threshold) {
         var N = 25, k = 0, v = src[off];
         var a0 = threshold,a=0,b0=0,b=0;
 
@@ -3523,6 +4045,10 @@
 
     var _threshold = 20;
 
+    /**
+     * @param {number} threshold
+     * @returns {number}
+     */
     const set_threshold = function(threshold) {
         _threshold = Math.min(Math.max(threshold, 0), 255);
         for (var i = -255; i <= 255; ++i) {
@@ -3531,6 +4057,13 @@
         return _threshold;
     };
 
+    /**
+     * 
+     * @param {matrix_t} src
+     * @param {Point[]} corners
+     * @param {number=} border
+     * @returns {number}
+     */
     const detect = function(src, corners, border) {
         if (typeof border === "undefined") { border = 3; }
 
@@ -3706,6 +4239,25 @@
      * @author Vincent Lepetit (http://cvlab.epfl.ch/~lepetit)
      */
 
+    /**
+     * @typedef {import('./jsfeat').Point} Point
+     * @typedef {import('./jsfeat_struct').Data} Data
+     * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
+     */
+
+    /**
+     * @template {Data} T
+     * @param {T} src
+     * @param {T} dst
+     * @param {number} w
+     * @param {number} h
+     * @param {number} Dxx
+     * @param {number} Dyy
+     * @param {number} sx
+     * @param {number} sy
+     * @param {number} ex
+     * @param {number} ey
+     */
     var compute_laplacian = function(src, dst, w, h, Dxx, Dyy, sx,sy, ex,ey) {
         var y=0,x=0,yrow=(sy*w+sx)|0,row=yrow;
 
@@ -3716,6 +4268,16 @@
         }
     };
 
+    /**
+     * @param {Data} src
+     * @param {number} off
+     * @param {number} tr
+     * @param {number} Dxx
+     * @param {number} Dyy
+     * @param {number} Dxy
+     * @param {number} Dyx
+     * @returns {number}
+     */
     var hessian_min_eigen_value = function(src, off, tr, Dxx, Dyy, Dxy, Dyx) {
         var Ixx = -2 * src[off] + src[off + Dxx] + src[off - Dxx];
         var Iyy = -2 * src[off] + src[off + Dyy] + src[off - Dyy];
@@ -3730,6 +4292,12 @@
     const laplacian_threshold = 30;
     const min_eigen_value_threshold = 25;
 
+    /**
+     * @param {matrix_t} src
+     * @param {Point[]} points
+     * @param {number} border
+     * @returns {number}
+     */
     const detect$1 = function(src, points, border) {
         if (typeof border === "undefined") { border = 5; }
         var x=0,y=0;
@@ -3740,8 +4308,8 @@
         var laplacian = lap_buf.i32;
         var lv=0, row=0,rowx=0,min_eigen_value=0,pt;
         var number_of_points = 0;
-        var lap_thresh = this.laplacian_threshold;
-        var eigen_thresh = this.min_eigen_value_threshold;
+        var lap_thresh = laplacian_threshold;
+        var eigen_thresh = min_eigen_value_threshold;
 
         var sx = Math.max(5, border)|0;
         var sy = Math.max(3, border)|0;
@@ -3800,6 +4368,18 @@
      * Ecole Polytechnique Federale de Lausanne (EPFL), Switzerland.
      */
 
+    /**
+     * @typedef {import('./jsfeat').Point} Point
+     * @typedef {import('./jsfeat_struct').Data} Data
+     * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
+     */
+
+     /**
+      * 
+      * @param {number} step
+      * @param {Data} dirs
+      * @param {number} R
+      */
     var precompute_directions = function(step, dirs, R) {
         var i = 0;
         var x, y;
@@ -3851,6 +4431,13 @@
         return i;
     };
 
+    /**
+     * 
+     * @param {Data} Sb
+     * @param {number} off
+     * @param {number} step
+     * @returns {number}
+     */
     var third_check = function (Sb, off, step) {
         var n = 0;
         if(Sb[off+1]   != 0) n++;
@@ -3865,6 +4452,14 @@
         return n;
     };
 
+    /**
+     * @param {Data} p
+     * @param {number} off
+     * @param {number} v
+     * @param {number} step
+     * @param {number} neighborhood
+     * @returns {boolean}
+     */
     var is_local_maxima = function(p, off, v, step, neighborhood) {
         var x, y;
 
@@ -3888,6 +4483,16 @@
         return true;
     };
 
+    /**
+     * @param {Data} I
+     * @param {number} x
+     * @param {Data} Scores
+     * @param {number} Im
+     * @param {number} Ip
+     * @param {Data} dirs
+     * @param {number} opposite
+     * @param {number} dirs_nb
+     */
     var perform_one_point = function(I, x, Scores, Im, Ip, dirs, opposite, dirs_nb) {
       var score = 0;
       var a = 0, b = (opposite - 1)|0;
@@ -4107,32 +4712,51 @@
       Scores[x] = (score + dirs_nb * I[x]);
     };
 
-    var lev_table_t = (function () {
-        function lev_table_t(w, h, r) {
+    class lev_table_t {
+        /**
+         * @param {number} w
+         * @param {number} h
+         * @param {number} r
+         */
+        constructor(w, h, r) {
             this.dirs = new Int32Array(1024);
             this.dirs_count = precompute_directions(w, this.dirs, r)|0;
             this.scores = new Int32Array(w*h);
             this.radius = r|0;
         }
-        return lev_table_t;
-    })();
+    }
 
+    /**
+     * @type {lev_table_t[]}
+     */
     const level_tables = [];
     const tau = 7;
 
+    /**
+     * 
+     * @param {number} width
+     * @param {number} height
+     * @param {number} radius
+     * @param {number=} pyramid_levels
+     */
     const init = function(width, height, radius, pyramid_levels) {
         if (typeof pyramid_levels === "undefined") { pyramid_levels = 1; }
         var i;
         radius = Math.min(radius, 7);
         radius = Math.max(radius, 3);
         for(i = 0; i < pyramid_levels; ++i) {
-            this.level_tables[i] = new lev_table_t(width>>i, height>>i, radius);
+            level_tables[i] = new lev_table_t(width>>i, height>>i, radius);
         }
     };
 
+    /**
+     * @param {matrix_t} src
+     * @param {Point[]} points
+     * @param {number=} border
+     */
     const detect$2 = function(src, points, border) {
         if (typeof border === "undefined") { border = 4; }
-        var t = this.level_tables[0];
+        var t = level_tables[0];
         var R = t.radius|0, Rm1 = (R-1)|0;
         var dirs = t.dirs;
         var dirs_count = t.dirs_count|0;
@@ -4140,7 +4764,6 @@
         var img = src.data, w=src.cols|0, h=src.rows|0,hw=w>>1;
         var scores = t.scores;
         var x=0,y=0,row=0,rowx=0,ip=0,im=0,abs_score=0, score=0;
-        var tau = this.tau|0;
         var number_of_points = 0, pt;
 
         var sx = Math.max(R+1, border)|0;
@@ -4462,6 +5085,14 @@
     var H = new matrix_t(3, 3, F32_t|C1_t);
     var patch_img = new matrix_t(32, 32, U8_t|C1_t);
 
+    /**
+     * @param {matrix_t} src
+     * @param {matrix_t} dst
+     * @param {number} angle
+     * @param {number} px
+     * @param {number} py
+     * @param {number} psize
+     */
     var rectify_patch = function(src, dst, angle, px, py, psize) {
     	var cosine = Math.cos(angle);
     	var sine   = Math.sin(angle);
@@ -4472,6 +5103,13 @@
     	warp_affine(src, dst, H, 128);
     };
 
+    /**
+     * 
+     * @param {matrix_t} src
+     * @param {{ x: number, y: number, angle: number }[]} corners
+     * @param {number} count
+     * @param {matrix_t} descriptors
+     */
     const describe = function(src, corners, count, descriptors) {
     	var DESCR_SIZE = 32; // bytes;
     	var i=0,b=0,px=0.0,py=0.0,angle=0.0;
@@ -4507,35 +5145,35 @@
     			
     			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
     			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
-    			val = (t0 < t1)|0;
+    			val = t0 < t1 ? 1 : 0;
     			
     			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
     			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
-    			val |= (t0 < t1) << 1;
+    			val |= t0 < t1 ? 1 << 1 : 0;
     			
     			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
     			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
-    			val |= (t0 < t1) << 2;
+    			val |= t0 < t1 ? 1 << 2 : 0;
     			
     			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
     			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
-    			val |= (t0 < t1) << 3;
+    			val |= t0 < t1 ? 1 << 3 : 0;
     			
     			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
     			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
-    			val |= (t0 < t1) << 4;
+    			val |= t0 < t1 ? 1 << 4 : 0;
     			
     			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
     			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
-    			val |= (t0 < t1) << 5;
+    			val |= t0 < t1 ? 1 << 5 : 0;
     			
     			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
     			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
-    			val |= (t0 < t1) << 6;
+    			val |= t0 < t1 ? 1 << 6 : 0;
     			
     			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
     			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2;
-    			val |= (t0 < t1) << 7;
+    			val |= t0 < t1 ? 1 << 7 : 0;
     			
     			descr_d[descr_off+b] = val;
     		}
@@ -4554,6 +5192,22 @@
      * this code is a rewrite from OpenCV's Lucas-Kanade optical flow implementation
      */
 
+    /**
+     * @typedef {import('./jsfeat_struct/pyramid_t').default} pyramid_t
+     */
+
+    /**
+     * @param {pyramid_t} prev_pyr
+     * @param {pyramid_t} curr_pyr
+     * @param {number[]} prev_xy
+     * @param {number[]} curr_xy
+     * @param {number} count
+     * @param {number} win_size
+     * @param {number=} max_iter
+     * @param {Uint8Array=} status
+     * @param {number=} eps
+     * @param {number=} min_eigen_threshold
+     */
     const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_size, max_iter, status, eps, min_eigen_threshold) {
         if (typeof max_iter === "undefined") { max_iter = 30; }
         if (typeof status === "undefined") { status = new Uint8Array(count); }
@@ -4644,7 +5298,7 @@
                 iprev_y = prev_y|0;
 
                 // border check
-                x = (iprev_x <= brd_tl)|(iprev_x >= brd_r)|(iprev_y <= brd_tl)|(iprev_y >= brd_b);
+                x = (iprev_x <= brd_tl)||(iprev_x >= brd_r)||(iprev_y <= brd_tl)||(iprev_y >= brd_b) ? 1 : 0;
                 if( x != 0 ) {
                     if( level == 0 ) {
                         status[ptid] = 0;
@@ -4715,7 +5369,7 @@
                     inext_x = next_x|0;
                     inext_y = next_y|0;
 
-                    x = (inext_x <= brd_tl)|(inext_x >= brd_r)|(inext_y <= brd_tl)|(inext_y >= brd_b);
+                    x = (inext_x <= brd_tl)||(inext_x >= brd_r)||(inext_y <= brd_tl)||(inext_y >= brd_b) ? 1 : 0;
                     if( x != 0 ) {
                         if( level == 0 ) {
                             status[ptid] = 0;
@@ -4786,25 +5440,50 @@
     });
 
     /**
-     * @author Eugene Zatepyakin / http://inspirit.ru/
-     *
-     * this code is a rewrite from https://github.com/mtschirs/js-objectdetect implementation
-     * @author Martin Tschirsich / http://www.tu-darmstadt.de/~m_t
+     * @typedef {import('../jsfeat').Rect} Rect
      */
 
-    var _group_func = function(r1, r2) {
+    /**
+     * @param {Rect} r1
+     * @param {Rect} r2 
+     */
+    var group_func = function(r1, r2) {
         var distance = (r1.width * 0.25 + 0.5)|0;
 
         return r2.x <= r1.x + distance &&
                 r2.x >= r1.x - distance &&
                 r2.y <= r1.y + distance &&
                 r2.y >= r1.y - distance &&
-                r2.width <= (r1.width * 1.5 + 0.5)|0 &&
-                (r2.width * 1.5 + 0.5)|0 >= r1.width;
+                r2.width <= ((r1.width * 1.5 + 0.5)|0) &&
+                ((r2.width * 1.5 + 0.5)|0) >= r1.width;
     };
+
+    /**
+     * @author Eugene Zatepyakin / http://inspirit.ru/
+     *
+     * this code is a rewrite from https://github.com/mtschirs/js-objectdetect implementation
+     * @author Martin Tschirsich / http://www.tu-darmstadt.de/~m_t
+     */
+
+    /**
+     * @typedef {import('./jsfeat').Classifier} Classifier
+     * @typedef {import('./jsfeat').Rect} Rect
+     */
 
     const edges_density = 0.07;
 
+    /**
+     * 
+     * @param {number[]} int_sum
+     * @param {number[]} int_sqsum
+     * @param {number[]} int_tilted
+     * @param {number[]} int_canny_sum
+     * @param {number} width
+     * @param {number} height
+     * @param {number} scale
+     * @param {Classifier} classifier
+     * @returns {Rect[]}
+     */
     const detect_single_scale = function(int_sum, int_sqsum, int_tilted, int_canny_sum, width, height, scale, classifier) {
         var win_w = (classifier.size[0] * scale)|0,
             win_h = (classifier.size[1] * scale)|0,
@@ -4906,8 +5585,8 @@
                                 "y" : y,
                                 "width" : win_w,
                                 "height" : win_h,
-                                "neighbor" : 1,
-                                "confidence" : stage_sum});
+                                "neighbors" : 1,
+                                "confidence" : /** @type {number} */(stage_sum)});
                     x += step_x, ii_a += step_x;
                 }
             }
@@ -4915,6 +5594,19 @@
         return rects;
     };
 
+    /**
+     * 
+     * @param {number[]} int_sum
+     * @param {number[]} int_sqsum
+     * @param {number[]} int_tilted
+     * @param {number[]} int_canny_sum
+     * @param {number} width
+     * @param {number} height
+     * @param {Classifier} classifier
+     * @param {number=} scale_factor
+     * @param {number=} scale_min
+     * @returns {Rect[]}
+     */
     const detect_multi_scale = function(int_sum, int_sqsum, int_tilted, int_canny_sum, width, height, classifier, scale_factor, scale_min) {
         if (typeof scale_factor === "undefined") { scale_factor = 1.2; }
         if (typeof scale_min === "undefined") { scale_min = 1.0; }
@@ -4922,13 +5614,17 @@
         var win_h = classifier.size[1];
         var rects = [];
         while (scale_min * win_w < width && scale_min * win_h < height) {
-            rects = rects.concat(detect_single_scale(int_sum, int_sqsum, int_tilted, int_canny_sum, width, height, scale_min, classifier));
+            rects.push(...detect_single_scale(int_sum, int_sqsum, int_tilted, int_canny_sum, width, height, scale_min, classifier));
             scale_min *= scale_factor;
         }
         return rects;
     };
 
-    // OpenCV method to group detected rectangles
+    /**
+     * OpenCV method to group detected rectangles
+     * @param {Rect[]} rects 
+     * @param {number=} min_neighbors 
+     */
     const group_rectangles = function(rects, min_neighbors) {
         if (typeof min_neighbors === "undefined") { min_neighbors = 1; }
         var i, j, n = rects.length;
@@ -4945,7 +5641,7 @@
             while (node[root].parent != -1)
                 root = node[root].parent;
             for (j = 0; j < n; ++j) {
-                if( i != j && node[j].element && _group_func(node[i].element, node[j].element)) {
+                if( i != j && node[j].element && group_func(node[i].element, node[j].element)) {
                     var root2 = j;
 
                     while (node[root2].parent != -1)
@@ -5081,16 +5777,10 @@
      * The original paper refers to: YEF∗ Real-Time Object Detection, Yotam Abramson and Bruno Steux
      */
 
-    var _group_func$1 = function(r1, r2) {
-        var distance = (r1.width * 0.25 + 0.5)|0;
-
-        return r2.x <= r1.x + distance &&
-                r2.x >= r1.x - distance &&
-                r2.y <= r1.y + distance &&
-                r2.y >= r1.y - distance &&
-                r2.width <= (r1.width * 1.5 + 0.5)|0 &&
-                (r2.width * 1.5 + 0.5)|0 >= r1.width;
-    };
+    /**
+     * @typedef {import('./jsfeat').Classifier} Classifier
+     * @typedef {import('./jsfeat').Rect} Rect
+     */
 
     var img_pyr = new pyramid_t(1);
 
@@ -5102,6 +5792,9 @@
     // make features local copy
     // to avoid array allocation with each scale
     // this is strange but array works faster than Int32 version???
+    /**
+     * @param {Classifier} cascade 
+     */
     const prepare_cascade = function(cascade) {
         var sn = cascade.stage_classifier.length;
         for (var j = 0; j < sn; j++) {
@@ -5118,6 +5811,13 @@
         }
     };
 
+    /**
+     * 
+     * @param {matrix_t} src
+     * @param {number} min_width
+     * @param {number} min_height
+     * @param {number=} newInterval
+     */
     const build_pyramid = function(src, min_width, min_height, newInterval) {
         if (typeof newInterval === "undefined") { newInterval = 4; }
 
@@ -5189,6 +5889,10 @@
         return img_pyr;
     };
 
+    /**
+     * @param {*} pyramid
+     * @param {Classifier} cascade
+     */
     const detect$3 = function(pyramid, cascade) {
         var i=0,j=0,k=0,n=0,x=0,y=0,q=0,sn=0,f_cnt=0,q_cnt=0,p=0,pmin=0,nmax=0,f=0,i4=0,qw=0,qh=0;
         var sum=0.0, alpha, feature, orig_feature, feature_k, feature_o, flag = true, shortcut=true;
@@ -5312,7 +6016,12 @@
         return seq;
     };
 
-    // OpenCV method to group detected rectangles
+    /**
+     * OpenCV method to group detected rectangles
+     *
+     * @param {Rect[]} rects 
+     * @param {number=} min_neighbors 
+     */
     const group_rectangles$1 = function(rects, min_neighbors) {
         if (typeof min_neighbors === "undefined") { min_neighbors = 1; }
         var i, j, n = rects.length;
@@ -5329,7 +6038,7 @@
             while (node[root].parent != -1)
                 root = node[root].parent;
             for (j = 0; j < n; ++j) {
-                if( i != j && node[j].element && _group_func$1(node[i].element, node[j].element)) {
+                if( i != j && node[j].element && group_func(node[i].element, node[j].element)) {
                     var root2 = j;
 
                     while (node[root2].parent != -1)
@@ -5463,6 +6172,27 @@
      */
     const REVISION = "ALPHA";
 
+    /**
+     * @typedef {object} Point
+     * @property {number} x
+     * @property {number} y
+     * @property {number} score
+     */
+
+    /**
+     * @typedef {object} Rect
+     * @property {number} x
+     * @property {number} y
+     * @property {number} width
+     * @property {number} height
+     * @property {number} confidence
+     * @property {number} neighbors
+     */
+
+    /**
+     * @typedef {*} Classifier
+     */
+
     exports.REVISION = REVISION;
     exports.bbf = jsfeat_bbf;
     exports.cache = jsfeat_cache;
@@ -5480,7 +6210,7 @@
     exports.optical_flow_lk = jsfeat_optical_flow_lk;
     exports.orb = jsfeat_orb;
     exports.pyramid_t = pyramid_t;
-    exports.ransac_params_t = ransac_params_t$1;
+    exports.ransac_params_t = ransac_params_t;
     exports.yape = jsfeat_yape;
     exports.yape06 = jsfeat_yape06;
 

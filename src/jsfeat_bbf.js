@@ -13,17 +13,12 @@ import * as imgproc from './jsfeat_imgproc'
 import matrix_t from './jsfeat_struct/matrix_t'
 import pyramid_t from './jsfeat_struct/pyramid_t'
 import { C1_t, U8_t } from './jsfeat_struct'
+import group_func from './jsfeat_struct/group_func';
 
-var _group_func = function(r1, r2) {
-    var distance = (r1.width * 0.25 + 0.5)|0;
-
-    return r2.x <= r1.x + distance &&
-            r2.x >= r1.x - distance &&
-            r2.y <= r1.y + distance &&
-            r2.y >= r1.y - distance &&
-            r2.width <= (r1.width * 1.5 + 0.5)|0 &&
-            (r2.width * 1.5 + 0.5)|0 >= r1.width;
-}
+/**
+ * @typedef {import('./jsfeat').Classifier} Classifier
+ * @typedef {import('./jsfeat').Rect} Rect
+ */
 
 var img_pyr = new pyramid_t(1);
 
@@ -35,6 +30,9 @@ export let scale_to = 1;
 // make features local copy
 // to avoid array allocation with each scale
 // this is strange but array works faster than Int32 version???
+/**
+ * @param {Classifier} cascade 
+ */
 export const prepare_cascade = function(cascade) {
     var sn = cascade.stage_classifier.length;
     for (var j = 0; j < sn; j++) {
@@ -51,6 +49,13 @@ export const prepare_cascade = function(cascade) {
     }
 }
 
+/**
+ * 
+ * @param {matrix_t} src
+ * @param {number} min_width
+ * @param {number} min_height
+ * @param {number=} newInterval
+ */
 export const build_pyramid = function(src, min_width, min_height, newInterval) {
     if (typeof newInterval === "undefined") { newInterval = 4; }
 
@@ -122,6 +127,10 @@ export const build_pyramid = function(src, min_width, min_height, newInterval) {
     return img_pyr;
 }
 
+/**
+ * @param {*} pyramid
+ * @param {Classifier} cascade
+ */
 export const detect = function(pyramid, cascade) {
     var i=0,j=0,k=0,n=0,x=0,y=0,q=0,sn=0,f_cnt=0,q_cnt=0,p=0,pmin=0,nmax=0,f=0,i4=0,qw=0,qh=0;
     var sum=0.0, alpha, feature, orig_feature, feature_k, feature_o, flag = true, shortcut=true;
@@ -245,7 +254,12 @@ export const detect = function(pyramid, cascade) {
     return seq;
 }
 
-// OpenCV method to group detected rectangles
+/**
+ * OpenCV method to group detected rectangles
+ *
+ * @param {Rect[]} rects 
+ * @param {number=} min_neighbors 
+ */
 export const group_rectangles = function(rects, min_neighbors) {
     if (typeof min_neighbors === "undefined") { min_neighbors = 1; }
     var i, j, n = rects.length;
@@ -262,7 +276,7 @@ export const group_rectangles = function(rects, min_neighbors) {
         while (node[root].parent != -1)
             root = node[root].parent;
         for (j = 0; j < n; ++j) {
-            if( i != j && node[j].element && _group_func(node[i].element, node[j].element)) {
+            if( i != j && node[j].element && group_func(node[i].element, node[j].element)) {
                 var root2 = j;
 
                 while (node[root2].parent != -1)

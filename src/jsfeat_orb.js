@@ -271,6 +271,14 @@ var bit_pattern_31_ = new Int32Array([
 var H = new matrix_t(3, 3, F32_t|C1_t);
 var patch_img = new matrix_t(32, 32, U8_t|C1_t);
 
+/**
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {number} angle
+ * @param {number} px
+ * @param {number} py
+ * @param {number} psize
+ */
 var rectify_patch = function(src, dst, angle, px, py, psize) {
 	var cosine = Math.cos(angle);
 	var sine   = Math.sin(angle);
@@ -281,6 +289,13 @@ var rectify_patch = function(src, dst, angle, px, py, psize) {
 	imgproc.warp_affine(src, dst, H, 128);
 }
 
+/**
+ * 
+ * @param {matrix_t} src
+ * @param {{ x: number, y: number, angle: number }[]} corners
+ * @param {number} count
+ * @param {matrix_t} descriptors
+ */
 export const describe = function(src, corners, count, descriptors) {
 	var DESCR_SIZE = 32; // bytes;
 	var i=0,b=0,px=0.0,py=0.0,angle=0.0;
@@ -316,35 +331,35 @@ export const describe = function(src, corners, count, descriptors) {
 			
 			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
 			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
-			val = (t0 < t1)|0;
+			val = t0 < t1 ? 1 : 0;
 			
 			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
 			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
-			val |= (t0 < t1) << 1;
+			val |= t0 < t1 ? 1 << 1 : 0;
 			
 			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
 			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
-			val |= (t0 < t1) << 2;
+			val |= t0 < t1 ? 1 << 2 : 0;
 			
 			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
 			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
-			val |= (t0 < t1) << 3;
+			val |= t0 < t1 ? 1 << 3 : 0;
 			
 			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
 			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
-			val |= (t0 < t1) << 4;
+			val |= t0 < t1 ? 1 << 4 : 0;
 			
 			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
 			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
-			val |= (t0 < t1) << 5;
+			val |= t0 < t1 ? 1 << 5 : 0;
 			
 			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
 			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
-			val |= (t0 < t1) << 6;
+			val |= t0 < t1 ? 1 << 6 : 0;
 			
 			t0 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
 			t1 = patch_d[patch_off + bit_pattern_31_[patt+1] * 32 + bit_pattern_31_[patt]]; patt += 2
-			val |= (t0 < t1) << 7;
+			val |= t0 < t1 ? 1 << 7 : 0;
 			
 			descr_d[descr_off+b] = val;
 		}

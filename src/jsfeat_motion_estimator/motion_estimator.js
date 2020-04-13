@@ -3,6 +3,24 @@ import * as math from '../jsfeat_math'
 import matrix_t from '../jsfeat_struct/matrix_t'
 import { C1_t, U8C1_t, U8_t } from '../jsfeat_struct'
 
+/**
+ * @typedef {import('../jsfeat').ransac_params_t} ransac_params_t
+ * @typedef {import('../jsfeat').Point} Point
+ * @typedef {import('../jsfeat_struct').Data} Data
+ * @typedef {import('./motion_model').MotionModelKernel} MotionModelKernel
+ */
+
+/**
+ * 
+ * @param {MotionModelKernel} kernel
+ * @param {Point[]} from
+ * @param {Point[]} to
+ * @param {number} need_cnt
+ * @param {number} max_cnt
+ * @param {Point[]} from_sub
+ * @param {Point[]} to_sub
+ * @returns {boolean}
+ */
 var get_subset = function(kernel, from, to, need_cnt, max_cnt, from_sub, to_sub) {
     var max_try = 1000;
     var indices = [];
@@ -34,6 +52,17 @@ var get_subset = function(kernel, from, to, need_cnt, max_cnt, from_sub, to_sub)
     return (i == need_cnt && ssiter < max_try);
 }
 
+/**
+ * @param {MotionModelKernel} kernel
+ * @param {matrix_t} model
+ * @param {Point[]} from
+ * @param {Point[]} to
+ * @param {number} count
+ * @param {number} thresh
+ * @param {Data} err
+ * @param {Data} mask
+ * @returns {number}
+ */
 var find_inliers = function(kernel, model, from, to, count, thresh, err, mask) {
     var numinliers = 0, i=0, f=0;
     var t = thresh*thresh;
@@ -41,13 +70,24 @@ var find_inliers = function(kernel, model, from, to, count, thresh, err, mask) {
     kernel.error(from, to, model, err, count);
 
     for(; i < count; ++i) {
-        f = err[i] <= t;
+        f = err[i] <= t ? 1 : 0;
         mask[i] = f;
         numinliers += f;
     }
     return numinliers;
 }
 
+/**
+ * @param {ransac_params_t} params
+ * @param {MotionModelKernel} kernel
+ * @param {Point[]} from
+ * @param {Point[]} to
+ * @param {number} count
+ * @param {matrix_t} model
+ * @param {matrix_t} mask
+ * @param {number=} max_iters
+ * @returns {boolean}
+ */
 export const ransac = function(params, kernel, from, to, count, model, mask, max_iters) {
     if (typeof max_iters === "undefined") { max_iters=1000; }
 
@@ -57,8 +97,8 @@ export const ransac = function(params, kernel, from, to, count, model, mask, max
     var niters = max_iters, iter=0;
     var result = false;
 
-    var subset0 = [];
-    var subset1 = [];
+    var subset0 = /** @type {import('../jsfeat').Point[]} */([]);
+    var subset1 = /** @type {import('../jsfeat').Point[]} */([]);
     var found = false;
 
     var mc=model.cols,mr=model.rows;
@@ -133,6 +173,16 @@ export const ransac = function(params, kernel, from, to, count, model, mask, max
     return result;
 }
 
+/**
+ * @param {ransac_params_t} params
+ * @param {MotionModelKernel} kernel
+ * @param {Point[]} from
+ * @param {Point[]} to
+ * @param {number} count
+ * @param {matrix_t} model
+ * @param {matrix_t} mask
+ * @param {number=} max_iters
+ */
 export const lmeds = function(params, kernel, from, to, count, model, mask, max_iters) {
     if (typeof max_iters === "undefined") { max_iters=1000; }
 
@@ -142,8 +192,8 @@ export const lmeds = function(params, kernel, from, to, count, model, mask, max_
     var niters = max_iters, iter=0;
     var result = false;
 
-    var subset0 = [];
-    var subset1 = [];
+    var subset0 = /** @type {import('../jsfeat').Point[]} */([]);
+    var subset1 = /** @type {import('../jsfeat').Point[]} */([]);
     var found = false;
 
     var mc=model.cols,mr=model.rows;

@@ -5,6 +5,18 @@
  * Ecole Polytechnique Federale de Lausanne (EPFL), Switzerland.
  */
 
+/**
+ * @typedef {import('./jsfeat').Point} Point
+ * @typedef {import('./jsfeat_struct').Data} Data
+ * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
+ */
+
+ /**
+  * 
+  * @param {number} step
+  * @param {Data} dirs
+  * @param {number} R
+  */
 var precompute_directions = function(step, dirs, R) {
     var i = 0;
     var x, y;
@@ -56,6 +68,13 @@ var precompute_directions = function(step, dirs, R) {
     return i;
 }
 
+/**
+ * 
+ * @param {Data} Sb
+ * @param {number} off
+ * @param {number} step
+ * @returns {number}
+ */
 var third_check = function (Sb, off, step) {
     var n = 0;
     if(Sb[off+1]   != 0) n++;
@@ -70,6 +89,14 @@ var third_check = function (Sb, off, step) {
     return n;
 }
 
+/**
+ * @param {Data} p
+ * @param {number} off
+ * @param {number} v
+ * @param {number} step
+ * @param {number} neighborhood
+ * @returns {boolean}
+ */
 var is_local_maxima = function(p, off, v, step, neighborhood) {
     var x, y;
 
@@ -93,6 +120,16 @@ var is_local_maxima = function(p, off, v, step, neighborhood) {
     return true;
 }
 
+/**
+ * @param {Data} I
+ * @param {number} x
+ * @param {Data} Scores
+ * @param {number} Im
+ * @param {number} Ip
+ * @param {Data} dirs
+ * @param {number} opposite
+ * @param {number} dirs_nb
+ */
 var perform_one_point = function(I, x, Scores, Im, Ip, dirs, opposite, dirs_nb) {
   var score = 0;
   var a = 0, b = (opposite - 1)|0;
@@ -316,32 +353,51 @@ var perform_one_point = function(I, x, Scores, Im, Ip, dirs, opposite, dirs_nb) 
   Scores[x] = (score + dirs_nb * I[x]);
 }
 
-var lev_table_t = (function () {
-    function lev_table_t(w, h, r) {
+class lev_table_t {
+    /**
+     * @param {number} w
+     * @param {number} h
+     * @param {number} r
+     */
+    constructor(w, h, r) {
         this.dirs = new Int32Array(1024);
         this.dirs_count = precompute_directions(w, this.dirs, r)|0;
         this.scores = new Int32Array(w*h);
         this.radius = r|0;
     }
-    return lev_table_t;
-})();
+}
 
+/**
+ * @type {lev_table_t[]}
+ */
 export const level_tables = [];
 export const tau = 7;
 
+/**
+ * 
+ * @param {number} width
+ * @param {number} height
+ * @param {number} radius
+ * @param {number=} pyramid_levels
+ */
 export const init = function(width, height, radius, pyramid_levels) {
     if (typeof pyramid_levels === "undefined") { pyramid_levels = 1; }
     var i;
     radius = Math.min(radius, 7);
     radius = Math.max(radius, 3);
     for(i = 0; i < pyramid_levels; ++i) {
-        this.level_tables[i] = new lev_table_t(width>>i, height>>i, radius);
+        level_tables[i] = new lev_table_t(width>>i, height>>i, radius);
     }
 };
 
+/**
+ * @param {matrix_t} src
+ * @param {Point[]} points
+ * @param {number=} border
+ */
 export const detect = function(src, points, border) {
     if (typeof border === "undefined") { border = 4; }
-    var t = this.level_tables[0];
+    var t = level_tables[0];
     var R = t.radius|0, Rm1 = (R-1)|0;
     var dirs = t.dirs;
     var dirs_count = t.dirs_count|0;
@@ -349,7 +405,6 @@ export const detect = function(src, points, border) {
     var img = src.data, w=src.cols|0, h=src.rows|0,hw=w>>1;
     var scores = t.scores;
     var x=0,y=0,row=0,rowx=0,ip=0,im=0,abs_score=0, score=0;
-    var tau = this.tau|0;
     var number_of_points = 0, pt;
 
     var sx = Math.max(R+1, border)|0;

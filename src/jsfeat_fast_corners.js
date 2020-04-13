@@ -6,6 +6,12 @@
 
 import * as cache from './jsfeat_cache'
 
+/**
+ * @typedef {import('./jsfeat').Point} Point
+ * @typedef {import('./jsfeat_struct').Data} Data
+ * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
+ */
+
 /*
 The references are:
  * Machine learning for high-speed corner detection,
@@ -21,6 +27,12 @@ var pixel_off = new Int32Array(25);
 var score_diff = new Int32Array(25);
 
 // private functions
+
+/**
+ * @param {Data} pixel
+ * @param {number} step
+ * @param {number} pattern_size
+ */
 var _cmp_offsets = function(pixel, step, pattern_size) {
     var k = 0;
     var offsets = offsets16;
@@ -30,9 +42,17 @@ var _cmp_offsets = function(pixel, step, pattern_size) {
     for( ; k < 25; ++k ) {
         pixel[k] = pixel[k - pattern_size];
     }
-},
+};
 
-_cmp_score_16 = function(src, off, pixel, d, threshold) {
+/**
+ * @param {Data} src
+ * @param {number} off
+ * @param {Data} pixel
+ * @param {Data} d
+ * @param {number} threshold
+ * @returns {number}
+ */
+var _cmp_score_16 = function(src, off, pixel, d, threshold) {
     var N = 25, k = 0, v = src[off];
     var a0 = threshold,a=0,b0=0,b=0;
 
@@ -75,6 +95,10 @@ _cmp_score_16 = function(src, off, pixel, d, threshold) {
 
 var _threshold = 20;
 
+/**
+ * @param {number} threshold
+ * @returns {number}
+ */
 export const set_threshold = function(threshold) {
     _threshold = Math.min(Math.max(threshold, 0), 255);
     for (var i = -255; i <= 255; ++i) {
@@ -83,6 +107,13 @@ export const set_threshold = function(threshold) {
     return _threshold;
 }
 
+/**
+ * 
+ * @param {matrix_t} src
+ * @param {Point[]} corners
+ * @param {number=} border
+ * @returns {number}
+ */
 export const detect = function(src, corners, border) {
     if (typeof border === "undefined") { border = 3; }
 

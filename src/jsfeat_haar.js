@@ -5,19 +5,27 @@
  * @author Martin Tschirsich / http://www.tu-darmstadt.de/~m_t
  */
 
-var _group_func = function(r1, r2) {
-    var distance = (r1.width * 0.25 + 0.5)|0;
+import group_func from "./jsfeat_struct/group_func";
 
-    return r2.x <= r1.x + distance &&
-            r2.x >= r1.x - distance &&
-            r2.y <= r1.y + distance &&
-            r2.y >= r1.y - distance &&
-            r2.width <= (r1.width * 1.5 + 0.5)|0 &&
-            (r2.width * 1.5 + 0.5)|0 >= r1.width;
-}
+/**
+ * @typedef {import('./jsfeat').Classifier} Classifier
+ * @typedef {import('./jsfeat').Rect} Rect
+ */
 
 export const edges_density = 0.07
 
+/**
+ * 
+ * @param {number[]} int_sum
+ * @param {number[]} int_sqsum
+ * @param {number[]} int_tilted
+ * @param {number[]} int_canny_sum
+ * @param {number} width
+ * @param {number} height
+ * @param {number} scale
+ * @param {Classifier} classifier
+ * @returns {Rect[]}
+ */
 export const detect_single_scale = function(int_sum, int_sqsum, int_tilted, int_canny_sum, width, height, scale, classifier) {
     var win_w = (classifier.size[0] * scale)|0,
         win_h = (classifier.size[1] * scale)|0,
@@ -119,8 +127,8 @@ export const detect_single_scale = function(int_sum, int_sqsum, int_tilted, int_
                             "y" : y,
                             "width" : win_w,
                             "height" : win_h,
-                            "neighbor" : 1,
-                            "confidence" : stage_sum});
+                            "neighbors" : 1,
+                            "confidence" : /** @type {number} */(stage_sum)});
                 x += step_x, ii_a += step_x;
             }
         }
@@ -128,6 +136,19 @@ export const detect_single_scale = function(int_sum, int_sqsum, int_tilted, int_
     return rects;
 }
 
+/**
+ * 
+ * @param {number[]} int_sum
+ * @param {number[]} int_sqsum
+ * @param {number[]} int_tilted
+ * @param {number[]} int_canny_sum
+ * @param {number} width
+ * @param {number} height
+ * @param {Classifier} classifier
+ * @param {number=} scale_factor
+ * @param {number=} scale_min
+ * @returns {Rect[]}
+ */
 export const detect_multi_scale = function(int_sum, int_sqsum, int_tilted, int_canny_sum, width, height, classifier, scale_factor, scale_min) {
     if (typeof scale_factor === "undefined") { scale_factor = 1.2; }
     if (typeof scale_min === "undefined") { scale_min = 1.0; }
@@ -135,13 +156,17 @@ export const detect_multi_scale = function(int_sum, int_sqsum, int_tilted, int_c
     var win_h = classifier.size[1];
     var rects = [];
     while (scale_min * win_w < width && scale_min * win_h < height) {
-        rects = rects.concat(detect_single_scale(int_sum, int_sqsum, int_tilted, int_canny_sum, width, height, scale_min, classifier));
+        rects.push(...detect_single_scale(int_sum, int_sqsum, int_tilted, int_canny_sum, width, height, scale_min, classifier));
         scale_min *= scale_factor;
     }
     return rects;
 }
 
-// OpenCV method to group detected rectangles
+/**
+ * OpenCV method to group detected rectangles
+ * @param {Rect[]} rects 
+ * @param {number=} min_neighbors 
+ */
 export const group_rectangles = function(rects, min_neighbors) {
     if (typeof min_neighbors === "undefined") { min_neighbors = 1; }
     var i, j, n = rects.length;
@@ -158,7 +183,7 @@ export const group_rectangles = function(rects, min_neighbors) {
         while (node[root].parent != -1)
             root = node[root].parent;
         for (j = 0; j < n; ++j) {
-            if( i != j && node[j].element && _group_func(node[i].element, node[j].element)) {
+            if( i != j && node[j].element && group_func(node[i].element, node[j].element)) {
                 var root2 = j;
 
                 while (node[root2].parent != -1)

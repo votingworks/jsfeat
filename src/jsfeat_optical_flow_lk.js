@@ -9,6 +9,22 @@ import { scharr_derivatives as scharr_deriv } from './jsfeat_imgproc'
 import matrix_t from './jsfeat_struct/matrix_t'
 import { S32C2_t } from './jsfeat_struct'
 
+/**
+ * @typedef {import('./jsfeat_struct/pyramid_t').default} pyramid_t
+ */
+
+/**
+ * @param {pyramid_t} prev_pyr
+ * @param {pyramid_t} curr_pyr
+ * @param {number[]} prev_xy
+ * @param {number[]} curr_xy
+ * @param {number} count
+ * @param {number} win_size
+ * @param {number=} max_iter
+ * @param {Uint8Array=} status
+ * @param {number=} eps
+ * @param {number=} min_eigen_threshold
+ */
 export const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_size, max_iter, status, eps, min_eigen_threshold) {
     if (typeof max_iter === "undefined") { max_iter = 30; }
     if (typeof status === "undefined") { status = new Uint8Array(count); }
@@ -99,7 +115,7 @@ export const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_s
             iprev_y = prev_y|0;
 
             // border check
-            x = (iprev_x <= brd_tl)|(iprev_x >= brd_r)|(iprev_y <= brd_tl)|(iprev_y >= brd_b);
+            x = (iprev_x <= brd_tl)||(iprev_x >= brd_r)||(iprev_y <= brd_tl)||(iprev_y >= brd_b) ? 1 : 0;
             if( x != 0 ) {
                 if( level == 0 ) {
                     status[ptid] = 0;
@@ -170,7 +186,7 @@ export const track = function(prev_pyr, curr_pyr, prev_xy, curr_xy, count, win_s
                 inext_x = next_x|0;
                 inext_y = next_y|0;
 
-                x = (inext_x <= brd_tl)|(inext_x >= brd_r)|(inext_y <= brd_tl)|(inext_y >= brd_b);
+                x = (inext_x <= brd_tl)||(inext_x >= brd_r)||(inext_y <= brd_tl)||(inext_y >= brd_b) ? 1 : 0;
                 if( x != 0 ) {
                     if( level == 0 ) {
                         status[ptid] = 0;

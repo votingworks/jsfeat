@@ -12,7 +12,7 @@ export * as matmath from "./jsfeat_mat_math";
 export * as linalg from "./jsfeat_linalg";
 export * as motion_estimator from "./jsfeat_motion_estimator/motion_estimator";
 export * as motion_model from "./jsfeat_motion_estimator/motion_model";
-export * as ransac_params_t from "./jsfeat_motion_estimator/ransac_params_t";
+export { default as ransac_params_t } from "./jsfeat_motion_estimator/ransac_params_t";
 export * as imgproc from "./jsfeat_imgproc";
 export * as fast_corners from "./jsfeat_fast_corners";
 export * as yape06 from "./jsfeat_yape06";
@@ -21,3 +21,24 @@ export * as orb from "./jsfeat_orb";
 export * as optical_flow_lk from "./jsfeat_optical_flow_lk";
 export * as haar from "./jsfeat_haar";
 export * as bbf from "./jsfeat_bbf";
+
+/**
+ * @typedef {object} Point
+ * @property {number} x
+ * @property {number} y
+ * @property {number} score
+ */
+
+/**
+ * @typedef {object} Rect
+ * @property {number} x
+ * @property {number} y
+ * @property {number} width
+ * @property {number} height
+ * @property {number} confidence
+ * @property {number} neighbors
+ */
+
+/**
+ * @typedef {*} Classifier
+ */

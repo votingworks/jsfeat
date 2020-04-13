@@ -14,6 +14,10 @@ export var U8_t = 0x0100,
     S64_t = 0x0800,
     F64_t = 0x1000;
 
+/**
+ * @typedef {Uint8Array | Int32Array | Float32Array | Float64Array} Data
+ */
+
 export var C1_t = 0x01,
     C2_t = 0x02,
     C3_t = 0x03,
@@ -21,23 +25,29 @@ export var C1_t = 0x01,
 
 var _data_type_size = new Int32Array([ -1, 1, 4, -1, 4, -1, -1, -1, 8, -1, -1, -1, -1, -1, -1, -1, 8 ]);
 
-export var get_data_type = (function () {
-    return function(type) {
-        return (type & 0xFF00);
-    }
-})();
+/**
+ * @param {number} type
+ * @returns {number}
+ */
+export var get_data_type = function(type) {
+    return (type & 0xFF00);
+}
 
-export var get_channel = (function () {
-    return function(type) {
-        return (type & 0xFF);
-    }
-})();
+/**
+ * @param {number} type
+ * @returns {number}
+ */
+export var get_channel = function(type) {
+    return (type & 0xFF);
+}
 
-export var get_data_type_size = (function () {
-    return function(type) {
-        return _data_type_size[(type & 0xFF00) >> 8];
-    }
-})();
+/**
+ * @param {number} type
+ * @returns {number}
+ */
+export var get_data_type_size = function(type) {
+    return _data_type_size[(type & 0xFF00) >> 8];
+}
 
 // color conversion
 export var COLOR_RGBA2GRAY = 0;

@@ -16,6 +16,16 @@ import {
     U8_t,
 } from './jsfeat_struct'
 
+/**
+ * @typedef {import('./jsfeat_struct').Data} Data
+ */
+
+/**
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {number} nw
+ * @param {number} nh
+ */
 var _resample_u8 = function(src, dst, nw, nh) {
     var xofs_count=0;
     var ch=src.channel,w=src.cols,h=src.rows;
@@ -103,6 +113,12 @@ var _resample_u8 = function(src, dst, nw, nh) {
     cache.put_buffer(xofs_node);
 }
 
+/**
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {number} nw
+ * @param {number} nh
+ */
 var _resample = function(src, dst, nw, nh) {
     var xofs_count=0;
     var ch=src.channel,w=src.cols,h=src.rows;
@@ -189,6 +205,16 @@ var _resample = function(src, dst, nw, nh) {
     cache.put_buffer(xofs_node);
 }
 
+/**
+ * @param {Data} buf
+ * @param {Data} src_d
+ * @param {Data} dst_d
+ * @param {number} w
+ * @param {number} h
+ * @param {Data} filter
+ * @param {number} kernel_size
+ * @param {number} half_kernel
+ */
 var _convol_u8 = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel) {
     var i=0,j=0,k=0,sp=0,dp=0,sum=0,sum1=0,sum2=0,sum3=0,f0=filter[0],fk=0;
     var w2=w<<1,w3=w*3,w4=w<<2;
@@ -283,6 +309,17 @@ var _convol_u8 = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_ker
     }
 }
 
+/**
+ * 
+ * @param {Data} buf
+ * @param {Data} src_d
+ * @param {Data} dst_d
+ * @param {number} w
+ * @param {number} h
+ * @param {Data} filter
+ * @param {number} kernel_size
+ * @param {number} half_kernel
+ */
 var _convol = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel) {
     var i=0,j=0,k=0,sp=0,dp=0,sum=0.0,sum1=0.0,sum2=0.0,sum3=0.0,f0=filter[0],fk=0.0;
     var w2=w<<1,w3=w*3,w4=w<<2;
@@ -377,8 +414,16 @@ var _convol = function(buf, src_d, dst_d, w, h, filter, kernel_size, half_kernel
     }
 }
 
-// TODO: add support for RGB/BGR order
-// for raw arrays
+/**
+ * TODO: add support for RGB/BGR order
+ * for raw arrays
+ *
+ * @param {Float32Array} src
+ * @param {number} w
+ * @param {number} h
+ * @param {matrix_t} dst
+ * @param {number=} code
+ */
 export const grayscale = function(src, w, h, dst, code) {
     // this is default image data representation in browser
     if (typeof code === "undefined") { code = COLOR_RGBA2GRAY; }
@@ -410,7 +455,14 @@ export const grayscale = function(src, w, h, dst, code) {
     }
 }
 
-// derived from CCV library
+/**
+ * derived from CCV library
+ *
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {number} nw
+ * @param {number} nh
+ */
 export const resample = function(src, dst, nw, nh) {
     var h=src.rows,w=src.cols;
     if (h > nh && w > nw) {
@@ -424,6 +476,12 @@ export const resample = function(src, dst, nw, nh) {
     }
 }
 
+/**
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {number} radius
+ * @param {number=} options
+ */
 export const box_blur_gray = function(src, dst, radius, options) {
     if (typeof options === "undefined") { options = 0; }
     var w=src.cols, h=src.rows, h2=h<<1, w2=w<<1;
@@ -591,6 +649,12 @@ export const box_blur_gray = function(src, dst, radius, options) {
     cache.put_buffer(tmp_buff);
 }
 
+/**
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {number=} kernel_size
+ * @param {number=} sigma
+ */
 export const gaussian_blur = function(src, dst, kernel_size, sigma) {
     if (typeof sigma === "undefined") { sigma = 0.0; }
     if (typeof kernel_size === "undefined") { kernel_size = 0; }
@@ -630,6 +694,14 @@ export const gaussian_blur = function(src, dst, kernel_size, sigma) {
     cache.put_buffer(filt_node);
 }
 
+/**
+ * 
+ * @param {matrix_t} img
+ * @param {number} rho_res
+ * @param {number} theta_res
+ * @param {number} threshold
+ * @returns {[number, number][]}
+ */
 export const hough_transform = function( img, rho_res, theta_res, threshold ) {
     var image = img.data;
 
@@ -686,13 +758,14 @@ export const hough_transform = function( img, rho_res, theta_res, threshold ) {
 
     // stage 3. sort the detected lines by accumulator value
     _sort_buf.sort(function(l1, l2) {
-        return accum[l1] > accum[l2] || (accum[l1] == accum[l2] && l1 < l2);
+        return (accum[l1] > accum[l2] || (accum[l1] == accum[l2] && l1 < l2)) ? 1 : 0;
     });
 
     // stage 4. store the first min(total,linesMax) lines to the output buffer
     var linesMax = Math.min(numangle*numrho, _sort_buf.length);
     var scale = 1.0 / (numrho+2);
-    var lines = new Array();
+    /** @type {[number, number][]} */
+    var lines = [];
     for( let i = 0; i < linesMax; i++ ) {
         var idx = _sort_buf[i];
         let n = Math.floor(idx*scale) - 1;
@@ -704,7 +777,14 @@ export const hough_transform = function( img, rho_res, theta_res, threshold ) {
     return lines;
 }
 
-// assume we always need it for u8 image
+/**
+ * assume we always need it for u8 image
+ *
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {number=} sx
+ * @param {number=} sy
+ */
 export const pyrdown = function(src, dst, sx, sy) {
     // this is needed for bbf
     if (typeof sx === "undefined") { sx = 0; }
@@ -737,7 +817,10 @@ export const pyrdown = function(src, dst, sx, sy) {
     }
 }
 
-// dst: [gx,gy,...]
+/**
+ * @param {matrix_t} src
+ * @param {matrix_t} dst [gx,gy,...]
+ */
 export const scharr_derivatives = function(src, dst) {
     var w = src.cols, h = src.rows;
     var dstep = w<<1,x=0,y=0,x1=0,a,b,c,d,e,f;
@@ -805,8 +888,13 @@ export const scharr_derivatives = function(src, dst) {
     cache.put_buffer(buf1_node);
 }
 
-// compute gradient using Sobel kernel [1 2 1] * [-1 0 1]^T
-// dst: [gx,gy,...]
+/**
+ * compute gradient using Sobel kernel [1 2 1] * [-1 0 1]^T
+ * dst: [gx,gy,...]
+ *
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ */
 export const sobel_derivatives = function(src, dst) {
     var w = src.cols, h = src.rows;
     var dstep = w<<1,x=0,y=0,x1=0,a,b,c,d,e,f;
@@ -874,8 +962,15 @@ export const sobel_derivatives = function(src, dst) {
     cache.put_buffer(buf1_node);
 }
 
-// please note: 
-// dst_(type) size should be cols = src.cols+1, rows = src.rows+1
+/**
+ * please note: 
+ * dst_(type) size should be cols = src.cols+1, rows = src.rows+1
+ * 
+ * @param {matrix_t} src
+ * @param {Data} dst_sum
+ * @param {Data} dst_sqsum
+ * @param {Data} dst_tilted 
+ */
 export const compute_integral_image = function(src, dst_sum, dst_sqsum, dst_tilted) {
     var w0=src.cols|0,h0=src.rows|0,src_d=src.data;
     var w1=(w0+1)|0;
@@ -981,6 +1076,10 @@ export const compute_integral_image = function(src, dst_sum, dst_sqsum, dst_tilt
     }
 }
 
+/**
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ */
 export const equalize_histogram = function(src, dst) {
     var w=src.cols,h=src.rows,src_d=src.data;
 
@@ -1008,6 +1107,12 @@ export const equalize_histogram = function(src, dst) {
     cache.put_buffer(hist0_node);
 }
 
+/**
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {number} low_thresh
+ * @param {number} high_thresh
+ */
 export const canny = function(src, dst, low_thresh, high_thresh) {
     var w=src.cols,h=src.rows;
 
@@ -1162,7 +1267,7 @@ export const canny = function(src, dst, low_thresh, high_thresh) {
     row0 = 0;
     for(i = 0; i < h; ++i, map_i+=map_w) {
         for(j = 0; j < w; ++j) {
-            dst_d[row0++] = (map[map_i+j] == 2) * 0xff;
+            dst_d[row0++] = map[map_i+j] == 2 ? 0xff : 0;
         }
     }
 
@@ -1173,7 +1278,14 @@ export const canny = function(src, dst, low_thresh, high_thresh) {
     cache.put_buffer(stack_node);
 }
 
-// transform is 3x3 matrix_t
+/**
+ * transform is 3x3 matrix_t
+ *
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {matrix_t} transform
+ * @param {number=} fill_value
+ */
 export const warp_perspective = function(src, dst, transform, fill_value) {
     if (typeof fill_value === "undefined") { fill_value = 0; }
     var src_width=src.cols|0, src_height=src.rows|0, dst_width=dst.cols|0, dst_height=dst.rows|0;
@@ -1208,7 +1320,14 @@ export const warp_perspective = function(src, dst, transform, fill_value) {
     }
 }
 
-// transform is 3x3 or 2x3 matrix_t only first 6 values referenced
+/**
+ * transform is 3x3 or 2x3 matrix_t only first 6 values referenced
+ * 
+ * @param {matrix_t} src
+ * @param {matrix_t} dst
+ * @param {matrix_t} transform
+ * @param {number=} fill_value
+ */
 export const warp_affine = function(src, dst, transform, fill_value) {
     if (typeof fill_value === "undefined") { fill_value = 0; }
     var src_width=src.cols, src_height=src.rows, dst_width=dst.cols, dst_height=dst.rows;
@@ -1239,8 +1358,13 @@ export const warp_affine = function(src, dst, transform, fill_value) {
     }
 }
 
-// Basic RGB Skin detection filter
-// from http://popscan.blogspot.fr/2012/08/skin-detection-in-digital-images.html
+/**
+ * Basic RGB Skin detection filter
+ * from http://popscan.blogspot.fr/2012/08/skin-detection-in-digital-images.html
+ *
+ * @param {{ width: number, height: number, data: number[] }} src
+ * @param {Uint8Array} dst
+ */
 export const skindetector = function(src,dst) {
     var r,g,b,j;
     var i = src.width*src.height;

@@ -8,12 +8,26 @@ import * as matmath from './jsfeat_mat_math'
 import matrix_t from './jsfeat_struct/matrix_t'
 import { EPSILON, FLT_MIN, C1_t, SVD_U_T, SVD_V_T } from './jsfeat_struct'
 
-var swap = function(A, i0, i1, t) {
-    t = A[i0];
+/**
+ * @typedef {import('./jsfeat_struct').Data} Data
+ */
+
+/**
+ * @param {Data} A
+ * @param {number} i0
+ * @param {number} i1
+ */
+var swap = function(A, i0, i1) {
+    const t = A[i0];
     A[i0] = A[i1];
     A[i1] = t;
 }
 
+/**
+ * @param {number} a
+ * @param {number} b
+ * @returns {number}
+ */
 var hypot = function(a, b) {
     a = Math.abs(a);
     b = Math.abs(b);
@@ -28,6 +42,14 @@ var hypot = function(a, b) {
     return 0.0;
 }
 
+/**
+ * @param {Data} A
+ * @param {number} astep
+ * @param {Data} W
+ * @param {Data=} V
+ * @param {number} vstep
+ * @param {number} n
+ */
 var JacobiImpl = function(A, astep, W, V, vstep, n) {
     var eps = EPSILON;
     var i=0,j=0,k=0,m=0,l=0,idx=0,_in=0,_in2=0;
@@ -167,10 +189,10 @@ var JacobiImpl = function(A, astep, W, V, vstep, n) {
                 m = i;
         }
         if(k != m) {
-            swap(W, m, k, mv);
+            swap(W, m, k);
             if(V) {
                 for(i = 0; i < n; i++) {
-                    swap(V, vstep*m + i, vstep*k + i, mv);
+                    swap(V, vstep*m + i, vstep*k + i);
                 }
             }
         }
@@ -181,6 +203,16 @@ var JacobiImpl = function(A, astep, W, V, vstep, n) {
     cache.put_buffer(indC_buff);
 }
 
+/**
+ * @param {Data} At
+ * @param {number} astep
+ * @param {Data} _W
+ * @param {Data=} Vt
+ * @param {number} vstep
+ * @param {number} m
+ * @param {number} n
+ * @param {number} n1
+ */
 var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
     var eps = EPSILON * 2.0;
     var minval = FLT_MIN;
@@ -301,14 +333,14 @@ var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
                 j = k;
         }
         if(i != j) {
-            swap(W, i, j, sd);
+            swap(W, i, j);
             if(Vt) {
                 for(k = 0; k < m; k++) {
-                    swap(At, i*astep + k, j*astep + k, t);
+                    swap(At, i*astep + k, j*astep + k);
                 }
                 
                 for(k = 0; k < n; k++) {
-                    swap(Vt, i*vstep + k, j*vstep + k, t);
+                    swap(Vt, i*vstep + k, j*vstep + k);
                 }
             }
         }
@@ -373,10 +405,15 @@ var JacobiSVDImpl = function(At, astep, _W, Vt, vstep, m, n, n1) {
 }
 
 
+/**
+ * @param {matrix_t} A
+ * @param {matrix_t} B
+ * @returns {number}
+ */
 export const lu_solve = function(A, B) {
     var i=0,j=0,k=0,p=1,astep=A.cols;
     var ad=A.data, bd=B.data;
-    var t,alpha,d,s;
+    var alpha,d,s;
 
     for(i = 0; i < astep; i++) {
         k = i;                    
@@ -392,10 +429,10 @@ export const lu_solve = function(A, B) {
         
         if(k != i) {
             for(j = i; j < astep; j++ ) {
-                swap(ad, i*astep+j, k*astep+j, t);
+                swap(ad, i*astep+j, k*astep+j);
             }
             
-            swap(bd, i, k, t);
+            swap(bd, i, k);
             p = -p;
         }
         
@@ -425,6 +462,11 @@ export const lu_solve = function(A, B) {
     return 1; // OK
 }
 
+/**
+ * @param {matrix_t} A
+ * @param {matrix_t} B
+ * @returns {number}
+ */
 export const cholesky_solve = function(A, B) {
     var col=0,row=0,col2=0,cs=0,rs=0,i=0,j=0;
     var size = A.cols;
@@ -491,6 +533,13 @@ export const cholesky_solve = function(A, B) {
     return 1;
 }
 
+/**
+ * @param {matrix_t} A
+ * @param {matrix_t} W
+ * @param {matrix_t} U
+ * @param {matrix_t} V
+ * @param {number=} options
+ */
 export const svd_decompose = function(A, W, U, V, options) {
     if (typeof options === "undefined") { options = 0; }
     var at=0,i=0,_m=A.rows,_n=A.cols,m=_m,n=_n;
@@ -578,6 +627,11 @@ export const svd_decompose = function(A, W, U, V, options) {
 
 }
 
+/**
+ * @param {matrix_t} A
+ * @param {matrix_t} X
+ * @param {matrix_t} B
+ */
 export const svd_solve = function(A, X, B) {
     var i=0,j=0,k=0;
     var pu=0,pv=0;
@@ -595,7 +649,7 @@ export const svd_solve = function(A, X, B) {
 
     var bd = B.data, ud = u_mt.data, wd = w_mt.data, vd = v_mt.data;
 
-    this.svd_decompose(A, w_mt, u_mt, v_mt, 0);
+    svd_decompose(A, w_mt, u_mt, v_mt, 0);
 
     tol = EPSILON * wd[0] * ncols;
 
@@ -617,6 +671,10 @@ export const svd_solve = function(A, X, B) {
     cache.put_buffer(v_buff);
 }
 
+/**
+ * @param {matrix_t} Ai
+ * @param {matrix_t} A
+ */
 export const svd_invert = function(Ai, A) {
     var i=0,j=0,k=0;
     var pu=0,pv=0,pa=0;
@@ -634,7 +692,7 @@ export const svd_invert = function(Ai, A) {
 
     var id = Ai.data, ud = u_mt.data, wd = w_mt.data, vd = v_mt.data;
 
-    this.svd_decompose(A, w_mt, u_mt, v_mt, 0);
+    svd_decompose(A, w_mt, u_mt, v_mt, 0);
 
     tol = EPSILON * wd[0] * ncols;
 
@@ -652,6 +710,11 @@ export const svd_invert = function(Ai, A) {
     cache.put_buffer(v_buff);
 }
 
+/**
+ * @param {matrix_t} A
+ * @param {matrix_t=} vects
+ * @param {matrix_t=} vals
+ */
 export const eigenVV = function(A, vects, vals) {
     var n=A.cols,i=n*n;
     var dt = A.type | C1_t;
@@ -665,7 +728,7 @@ export const eigenVV = function(A, vects, vals) {
         a_mt.data[i] = A.data[i];
     }
 
-    JacobiImpl(a_mt.data, n, w_mt.data, vects ? vects.data : null, n, n);
+    JacobiImpl(a_mt.data, n, w_mt.data, vects ? vects.data : undefined, n, n);
 
     if(vals) {
         while(--n >= 0) {

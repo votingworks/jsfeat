@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true
+  },
+  "exclude": ["build", "cascades"]
+}

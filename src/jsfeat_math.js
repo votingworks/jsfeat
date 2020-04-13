@@ -5,8 +5,19 @@
 import * as cache from './jsfeat_cache'
 import { U8_t } from './jsfeat_struct'
 
+/**
+ * @typedef {import('./jsfeat_struct').Data} Data
+ * @typedef {import('./jsfeat_struct/matrix_t').default} matrix_t
+ */
+
 var qsort_stack = new Int32Array(48*2);
 
+/**
+ * @param {number} size
+ * @param {number} sigma 
+ * @param {Data} kernel 
+ * @param {number} data_type 
+ */
 export const get_gaussian_kernel = function(size, sigma, kernel, data_type) {
     var i=0,x=0.0,t=0.0,sigma_x=0.0,scale_2x=0.0;
     var sum = 0.0;
@@ -65,7 +76,25 @@ export const get_gaussian_kernel = function(size, sigma, kernel, data_type) {
     cache.put_buffer(kern_node);
 }
 
-// model is 3x3 matrix_t
+/**
+ * @param {matrix_t} model 3x3 matrix
+ * @param {number} src_x0 
+ * @param {number} src_y0 
+ * @param {number} dst_x0 
+ * @param {number} dst_y0 
+ * @param {number} src_x1 
+ * @param {number} src_y1 
+ * @param {number} dst_x1 
+ * @param {number} dst_y1 
+ * @param {number} src_x2 
+ * @param {number} src_y2 
+ * @param {number} dst_x2 
+ * @param {number} dst_y2 
+ * @param {number} src_x3 
+ * @param {number} src_y3 
+ * @param {number} dst_x3 
+ * @param {number} dst_y3 
+ */
 export const perspective_4point_transform = function(model, src_x0, src_y0, dst_x0, dst_y0,
                                                     src_x1, src_y1, dst_x1, dst_y1,
                                                     src_x2, src_y2, dst_x2, dst_y2,
@@ -182,9 +211,16 @@ export const perspective_4point_transform = function(model, src_x0, src_y0, dst_
     mat[8] = -Hl6*t50-Hl7*(t44*t15)+t47*t15;
 }
 
-// The current implementation was derived from *BSD system qsort():
-// Copyright (c) 1992, 1993
-// The Regents of the University of California.  All rights reserved.
+/**
+ * The current implementation was derived from *BSD system qsort():
+ * Copyright (c) 1992, 1993
+ * The Regents of the University of California.  All rights reserved.
+ *
+ * @param {Data} array
+ * @param {number} low
+ * @param {number} high
+ * @param {(a: number, b: number) => number} cmp
+ */
 export const qsort = function(array, low, high, cmp) {
     var isort_thresh = 7;
     var t,ta,tb,tc;
@@ -349,6 +385,12 @@ export const qsort = function(array, low, high, cmp) {
     }
 }
 
+/**
+ * @param {Float32Array} array
+ * @param {number} low
+ * @param {number} high
+ * @returns {number}
+ */
 export const median = function(array, low, high) {
     var w;
     var middle=0,ll=0,hh=0,median=(low+high)>>1;
