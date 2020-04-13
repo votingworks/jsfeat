@@ -1,14 +1,15 @@
 {
-    "name": "jsfeat",
-    "version": "0.0.8",
+    "name": "@votingworks/jsfeat",
+    "version": "1.0.0",
     "description": "JavaScript Computer Vision library",
     "author": "Eugene Zatepyakin (http://www.inspirit.ru/)",
     "main": "build/jsfeat.js",
     "types": "build/jsfeat.d.ts",
     "files": [
-        "build/jsfeat.js"
+        "build"
     ],
     "scripts": {
+        "prepare": "yarn build",
         "build": "tsc -p . && rollup -c",
         "lint": "eslint src",
         "test": "yarn lint"

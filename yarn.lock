@@ -111,6 +111,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@votingworks/jsfeat@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@votingworks/jsfeat@workspace:."
+  dependencies:
+    "@typescript-eslint/parser": ^2.27.0
+    "@yarnpkg/pnpify": ^2.0.0-rc.20
+    eslint: ^6.8.0
+    rollup: ^2.6.0
+    rollup-plugin-terser: ^5.3.0
+    typescript: ^3.8.3
+  languageName: unknown
+  linkType: soft
+
 "@yarnpkg/fslib@npm:^2.0.0-rc.17":
   version: 2.0.0-rc.17
   resolution: "@yarnpkg/fslib@npm:2.0.0-rc.17"
@@ -1182,19 +1195,6 @@ fsevents@~2.1.2:
   checksum: 2/b530d48a64e6aff9523407856a54c5b9beee30f34a410612057f4fa097d90072fc8403c49604dacf0c3e7620dca43c2b7f0de3f954af611e43716a254c46f6f5
   languageName: node
   linkType: hard
-
-"jsfeat@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "jsfeat@workspace:."
-  dependencies:
-    "@typescript-eslint/parser": ^2.27.0
-    "@yarnpkg/pnpify": ^2.0.0-rc.20
-    eslint: ^6.8.0
-    rollup: ^2.6.0
-    rollup-plugin-terser: ^5.3.0
-    typescript: ^3.8.3
-  languageName: unknown
-  linkType: soft
 
 "json-schema-traverse@npm:^0.4.1":
   version: 0.4.1
