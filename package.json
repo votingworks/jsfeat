@@ -3,7 +3,8 @@
     "version": "0.0.8",
     "description": "JavaScript Computer Vision library",
     "author": "Eugene Zatepyakin (http://www.inspirit.ru/)",
-    "main": "build/jsfeat",
+    "main": "build/jsfeat.js",
+    "types": "build/jsfeat.d.ts",
     "files": [
         "build/jsfeat.js"
     ],
